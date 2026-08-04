@@ -1,0 +1,13 @@
+{
+  "name": "smarthome-simulation-dashboard",
+  "version": "1.0.0",
+  "description": "Web dashboard and controller for iFogSim2 Smart Home Simulation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "express": "^4.19.2"
+  }
+}

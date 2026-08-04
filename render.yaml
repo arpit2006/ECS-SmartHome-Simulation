@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: smarthome-simulation
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    # Render injects PORT automatically; your server.js already reads process.env.PORT
+    envVars:
+      - key: NODE_ENV
+        value: production

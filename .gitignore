@@ -1,0 +1,22 @@
+# Maven build output
+target/
+
+# Node.js dependencies (installed during Docker build)
+webapp/node_modules/
+
+# Generated simulation outputs (regenerated each run)
+SmartHomeDataset.csv
+SimulationLog.txt
+PerformanceReport.txt
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log

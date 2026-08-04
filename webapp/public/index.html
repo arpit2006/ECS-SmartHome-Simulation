@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Operations Desk</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glows">
+        <div class="glow-sphere sphere-1"></div>
+        <div class="glow-sphere sphere-2"></div>
+        <div class="glow-sphere sphere-3"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-copy">
+                <div class="header-logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <span class="eyebrow">Homestead ECS // Simulation Node #104</span>
+                        <h1>Homestead Fog Engine</h1>
+                        <p>Research prototype for predictive fog-computing topologies, dual-stream telemetry logging, and local energy footprints.</p>
+                    </div>
+                </div>
+                <div class="header-chips">
+                    <span class="header-chip">Local Dev</span>
+                    <span class="header-chip">iFogSim2 v2.1</span>
+                    <span class="header-chip">SQLite In-Memory</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-run" class="btn btn-primary">
+                    <svg class="icon btn-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span>Run Simulation</span>
+                </button>
+                <div class="header-profile">
+                    <div class="profile-info">
+                        <span class="profile-name">Arpit Shirbhate</span>
+                        <span class="profile-role">Operator (Dev)</span>
+                    </div>
+                    <div class="profile-avatar">AM</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- NOTICE BANNER -->
+        <div class="dev-banner">
+            <span class="banner-badge">NOTICE</span>
+            <span class="banner-text">Logging target is set to DualStream (Terminal + SimulationLog.txt). Local database will dump to SmartHomeDataset.csv upon JVM termination.</span>
+            <button class="banner-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+
+
+        <!-- TOP LEVEL METRICS -->
+        <section class="metrics-grid">
+            <div class="metric-card" id="card-execution-time">
+                <div class="metric-icon time-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Execution Time</span>
+                    <span class="metric-value" id="val-execution-time">--</span>
+                    <span class="metric-unit">ms (Real World)</span>
+                </div>
+            </div>
+            
+            <div class="metric-card" id="card-tuples">
+                <div class="metric-icon tuples-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Tuples Processed</span>
+                    <span class="metric-value" id="val-tuples">--</span>
+                    <span class="metric-unit">Simulated Packets</span>
+                </div>
+            </div>
+
+            <div class="metric-card" id="card-latency">
+                <div class="metric-icon latency-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Avg Fog Latency</span>
+                    <span class="metric-value" id="val-latency">--</span>
+                    <span class="metric-unit">milliseconds</span>
+                </div>
+            </div>
+
+            <div class="metric-card" id="card-power">
+                <div class="metric-icon power-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Avg System Power</span>
+                    <span class="metric-value" id="val-power">--</span>
+                    <span class="metric-unit">Watts</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN LAYOUT GRID -->
+        <main class="dashboard-grid">
+            
+            <!-- LEFT COLUMN: TOPOLOGY & TERMINAL -->
+            <div class="grid-col col-left">
+                <!-- TOPOLOGY VIEWER -->
+                <div class="dashboard-panel panel-topology">
+                    <div class="panel-header">
+                        <h2>Network Topology Map</h2>
+                        <span class="badge" id="lbl-topology-status">Idle</span>
+                    </div>
+                    <!-- SIMULATION PROGRESS BAR -->
+                    <div class="sim-progress-wrapper" id="sim-progress-wrapper" style="display:none">
+                        <div class="sim-progress-track">
+                            <div class="sim-progress-fill" id="sim-progress-fill"></div>
+                        </div>
+                        <span class="sim-progress-label" id="sim-progress-label">0%</span>
+                    </div>
+                    <div class="panel-body topology-body">
+                        <div class="topology-container">
+                            <!-- Cloud Level -->
+                            <div class="topology-level level-0">
+                                <div class="node-card cloud-node" id="node-cloud">
+                                    <div class="node-dot"></div>
+                                    <div class="node-info">
+                                        <span class="node-title">Cloud Datacenter</span>
+                                        <span class="node-detail">cloud (MIPS: 44,800)</span>
+                                    </div>
+                                    <div class="node-metric" id="node-cloud-energy">--</div>
+                                </div>
+                            </div>
+                            
+                            <div class="link-wrapper" id="link-cloud-fog">
+                                <svg class="link-svg" viewBox="0 0 8 50" preserveAspectRatio="none">
+                                    <line x1="4" y1="0" x2="4" y2="50" class="link-track"/>
+                                    <circle class="packet p1" cx="4" r="3"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0s"/></circle>
+                                    <circle class="packet p2" cx="4" r="2.5"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0.47s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0.47s"/></circle>
+                                    <circle class="packet p3" cx="4" r="2"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0.93s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0.93s"/></circle>
+                                </svg>
+                            </div>
+
+                            <!-- Fog Level -->
+                            <div class="topology-level level-1">
+                                <div class="node-card fog-node" id="node-fog">
+                                    <div class="node-dot"></div>
+                                    <div class="node-info">
+                                        <span class="node-title">Fog Node Gateway</span>
+                                        <span class="node-detail">fog-node (MIPS: 2,800)</span>
+                                    </div>
+                                    <div class="node-metric" id="node-fog-energy">--</div>
+                                </div>
+                            </div>
+
+                            <div class="link-wrapper" id="link-fog-mcu">
+                                <svg class="link-svg" viewBox="0 0 8 50" preserveAspectRatio="none">
+                                    <line x1="4" y1="0" x2="4" y2="50" class="link-track link-track-fog"/>
+                                    <circle class="packet packet-fog pf1" cx="4" r="3"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="0.2s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="0.2s"/></circle>
+                                    <circle class="packet packet-fog pf2" cx="4" r="2.5"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="0.73s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="0.73s"/></circle>
+                                    <circle class="packet packet-fog pf3" cx="4" r="2"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="1.27s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="1.27s"/></circle>
+                                </svg>
+                            </div>
+
+                            <!-- NodeMCU Level -->
+                            <div class="topology-level level-2">
+                                <div class="node-card mcu-node" id="node-mcu">
+                                    <div class="node-dot"></div>
+                                    <div class="node-info">
+                                        <span class="node-title">NodeMCU ESP8266</span>
+                                        <span class="node-detail">nodemcu-controller (MIPS: 80)</span>
+                                    </div>
+                                    <div class="node-metric" id="node-mcu-energy">--</div>
+                                </div>
+                            </div>
+
+                            <!-- Devices Attached to NodeMCU -->
+                            <div class="peripherals-row">
+                                <div class="peripheral-node sensor-node" id="node-sensor">
+                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 9v4M12 17h.01M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"/>
+                                    </svg>
+                                    <span>DHT11/LDR</span>
+                                </div>
+                                <div class="peripheral-node actuator-node" id="node-actuator-fan">
+                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                                    </svg>
+                                    <span>Smart Fan</span>
+                                </div>
+                                <div class="peripheral-node actuator-node" id="node-actuator-led">
+                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/>
+                                        <path d="M9 18h6M10 22h4"/>
+                                    </svg>
+                                    <span>Smart LED</span>
+                                </div>
+                            </div>
+
+                            <!-- ACTUATOR PERCENTAGE BARS & ANOMALY ALERT -->
+                            <div class="actuator-stats" id="actuator-stats">
+                                <div class="actuator-stat-row">
+                                    <span class="actuator-stat-label">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                        Fan ON
+                                    </span>
+                                    <div class="actuator-bar-track">
+                                        <div class="actuator-bar-fill fan-fill" id="bar-fan" style="width:0%"></div>
+                                    </div>
+                                    <span class="actuator-stat-pct" id="pct-fan">0%</span>
+                                </div>
+                                <div class="actuator-stat-row">
+                                    <span class="actuator-stat-label">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
+                                        LED ON
+                                    </span>
+                                    <div class="actuator-bar-track">
+                                        <div class="actuator-bar-fill led-fill" id="bar-led" style="width:0%"></div>
+                                    </div>
+                                    <span class="actuator-stat-pct" id="pct-led">0%</span>
+                                </div>
+                                <div class="anomaly-alert" id="anomaly-alert" style="display:none">
+                                    <span class="anomaly-icon">⚠</span>
+                                    <span id="anomaly-alert-text">Anomaly Detected — Sensor reading outside safe bounds</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIMULATION CONFIG PANEL -->
+                <div class="dashboard-panel panel-config">
+                    <div class="panel-header">
+                        <h2>Simulation Config & Overrides</h2>
+                        <span class="badge">config_v1.4</span>
+                    </div>
+                    <div class="panel-body config-body">
+                        <div class="config-grid">
+                            <div class="config-field">
+                                <label for="opt-actuator-mode">Actuator Control Mode</label>
+                                <div class="select-wrapper">
+                                    <select id="opt-actuator-mode" class="config-select">
+                                        <option value="auto">Auto (Fog Engine ML)</option>
+                                        <option value="fan-on">Force Fan ON (Override)</option>
+                                        <option value="led-on">Force LED ON (Override)</option>
+                                        <option value="both-off">Force Both OFF (Override)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="config-field">
+                                <label for="opt-anomaly-chance">Anomaly Injection Rate</label>
+                                <div class="select-wrapper">
+                                    <select id="opt-anomaly-chance" class="config-select">
+                                        <option value="0.02">2% (Default / Stable)</option>
+                                        <option value="0.05">5% (High Noise)</option>
+                                        <option value="0.10">10% (Extreme Stress)</option>
+                                        <option value="0.00">0% (Pure Automations)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TERMINAL PANEL -->
+                <div class="dashboard-panel panel-terminal">
+                    <div class="panel-header">
+                        <h2>Simulation Console Output</h2>
+                        <button id="btn-clear-console" class="btn-text">Clear</button>
+                    </div>
+                    <div class="panel-body terminal-body" id="terminal-output">
+                        <div class="terminal-line system-line">> Ready to run smart home simulation. Click 'Run Simulation' to execute the iFogSim2 topology compiler.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: CHARTS & STATS -->
+            <div class="grid-col col-right">
+                <!-- CHART PANEL -->
+                <div class="dashboard-panel panel-chart">
+                    <div class="panel-header">
+                        <h2>Live Telemetry Charts</h2>
+                        <div class="chart-controls">
+                            <span class="chart-legend"><span class="legend-color color-temp"></span>Temp</span>
+                            <span class="chart-legend"><span class="legend-color color-light"></span>Light</span>
+                            <span class="chart-legend"><span class="legend-color color-fan"></span>Fan</span>
+                            <span class="chart-legend"><span class="legend-color color-led"></span>LED</span>
+                        </div>
+                    </div>
+                    <div class="panel-body chart-body">
+                        <div class="chart-wrapper">
+                            <canvas id="telemetryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATASET PANEL -->
+                <div class="dashboard-panel panel-dataset">
+                    <div class="panel-header">
+                        <h2>SmartHomeDataset.csv Explorer</h2>
+                        <div class="dataset-controls">
+                            <input type="text" id="dataset-search" placeholder="Filter rows...">
+                            <span id="dataset-count" class="dataset-count">0 rows</span>
+                        </div>
+                    </div>
+                    <div class="panel-body dataset-body">
+                        <div class="table-wrapper">
+                            <table id="dataset-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sim Time</th>
+                                        <th>Temp (°C)</th>
+                                        <th>Humidity (%)</th>
+                                        <th>Light (LDR)</th>
+                                        <th>Fan</th>
+                                        <th>LED</th>
+                                        <th>Occupancy</th>
+                                        <th>Decision Label</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataset-tbody">
+                                    <tr>
+                                        <td colspan="8" class="empty-table">No data available. Run the simulation to compile dataset.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- PAGINATION -->
+                        <div class="pagination">
+                            <button id="btn-prev" class="btn btn-secondary btn-small" disabled>Previous</button>
+                            <span id="page-num">Page 1 of 1</span>
+                            <button id="btn-next" class="btn btn-secondary btn-small" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer-bar">
+            <div class="footer-left">
+                <span>EcoSync Smart Grid Project © 2026</span>
+                <span class="footer-divider">|</span>
+                <span>iFogSim2 Engine Core v2.1-beta</span>
+            </div>
+            <div class="footer-right">
+                <span class="status-dot"></span>
+                <span>Connected to Local Host</span>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
