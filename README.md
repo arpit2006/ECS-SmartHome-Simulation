@@ -4,7 +4,7 @@ This research-level simulation project uses **iFogSim2** and **CloudSim** to mod
 
 ---
 
-## Prerequisites
+## Prerequisite
 * **Java Development Kit (JDK) 21** or higher.
 * The project includes a pre-packaged Maven distribution inside `./maven/apache-maven-3.9.6/`.
 
