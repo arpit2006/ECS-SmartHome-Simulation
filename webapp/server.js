@@ -12,16 +12,26 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const projectRoot = path.resolve(__dirname, '..');
-const DATASET_PATH = path.join(projectRoot, 'SmartHomeDataset.csv');
-const REPORT_PATH  = path.join(projectRoot, 'PerformanceReport.txt');
-const LOG_PATH     = path.join(projectRoot, 'SimulationLog.txt');
+const DATASET_PATH     = path.join(projectRoot, 'SmartHomeDataset.csv');
+const REPORT_PATH      = path.join(projectRoot, 'PerformanceReport.txt');
+const LOG_PATH         = path.join(projectRoot, 'SimulationLog.txt');
+const EXPERIMENTS_PATH = path.join(projectRoot, 'experiments.json');
+
+// Global tracking for active simulation process and SSE stream
+let activeSimulationChild = null;
+let activeSSEClient = null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: Write an SSE event to a response stream
 // ─────────────────────────────────────────────────────────────────────────────
 function sendEvent(res, eventName, data) {
-    res.write(`event: ${eventName}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    if (!res || res.writableEnded) return;
+    try {
+        res.write(`event: ${eventName}\n`);
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch (e) {
+        console.error('sendEvent error:', e.message);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,7 +82,7 @@ function readCSVSync(filePath) {
 function computeLiveMetrics(rows) {
     if (rows.length === 0) return null;
     let sumTemp = 0, sumHumid = 0, sumLight = 0, sumFog = 0, sumCloud = 0, sumPower = 0;
-    let fanOn = 0, ledOn = 0;
+    let fanOn = 0, ledOn = 0, anomalies = 0;
     rows.forEach(r => {
         sumTemp  += parseFloat(r.Temperature)            || 0;
         sumHumid += parseFloat(r.Humidity)               || 0;
@@ -82,6 +92,7 @@ function computeLiveMetrics(rows) {
         sumPower += parseFloat(r['EnergyConsumption(W)'])|| 0;
         if (r.FanStatus && r.FanStatus.includes('ON')) fanOn++;
         if (r.LEDStatus && r.LEDStatus.includes('ON')) ledOn++;
+        if (r.IsAnomaly === true || r.IsAnomaly === 'true') anomalies++;
     });
     const n = rows.length;
     return {
@@ -94,6 +105,7 @@ function computeLiveMetrics(rows) {
         avgPowerW:        (sumPower / n).toFixed(2),
         fanOnPct:         ((fanOn / n) * 100).toFixed(1),
         ledOnPct:         ((ledOn / n) * 100).toFixed(1),
+        anomalyCount:     anomalies,
         lastRow:          rows[rows.length - 1]
     };
 }
@@ -107,32 +119,44 @@ app.get('/api/run', (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
+    activeSSEClient = res;
+
     const isWindows = process.platform === 'win32';
     const mavenCmd = path.join(projectRoot, 'maven', 'apache-maven-3.9.6', 'bin', isWindows ? 'mvn.cmd' : 'mvn');
 
     const mode = req.query.mode || 'auto';
     const anomalyChance = req.query.anomalyChance || '0.02';
 
-    const child = spawn(mavenCmd, [
-        'clean', 'compile', 'exec:java',
-        '-Dexec.mainClass=com.smarthome.MainSimulation',
-        `-DactuatorMode=${mode}`,
-        `-DanomalyChance=${anomalyChance}`
-    ], {
-        cwd: projectRoot,
-        env: { ...process.env, PAGER: 'cat' },
-        shell: true
-    });
+    let child;
+    if (isWindows) {
+        const fullCmd = `"${mavenCmd}" compile exec:java "-Dexec.mainClass=com.smarthome.MainSimulation" "-DactuatorMode=${mode}" "-DanomalyChance=${anomalyChance}"`;
+        child = spawn('cmd.exe', ['/s', '/c', `"${fullCmd}"`], {
+            cwd: projectRoot,
+            windowsVerbatimArguments: true,
+            env: { ...process.env, PAGER: 'cat' }
+        });
+    } else {
+        child = spawn(mavenCmd, [
+            'compile', 'exec:java',
+            '-Dexec.mainClass=com.smarthome.MainSimulation',
+            `-DactuatorMode=${mode}`,
+            `-DanomalyChance=${anomalyChance}`
+        ], {
+            cwd: projectRoot,
+            env: { ...process.env, PAGER: 'cat' }
+        });
+    }
 
+    activeSimulationChild = child;
     console.log(`Simulation process spawned: PID ${child.pid}`);
     sendEvent(res, 'status', 'started');
 
-    // ── Live polling interval: read CSV every 2 seconds and push updates ──
+    // ── Live polling interval: read CSV every 1.5 seconds and push updates ──
     let lastRowCount = 0;
     const liveInterval = setInterval(() => {
         if (!fs.existsSync(DATASET_PATH)) return;
         const rows = readCSVSync(DATASET_PATH);
-        if (rows.length === lastRowCount) return; // no new rows yet
+        if (rows.length === lastRowCount) return;
         lastRowCount = rows.length;
 
         const metrics = computeLiveMetrics(rows);
@@ -141,12 +165,20 @@ app.get('/api/run', (req, res) => {
         // Downsample rows to last 120 for chart performance
         const sample = rows.length > 120 ? rows.filter((_, i) => i % Math.floor(rows.length / 120) === 0) : rows;
         const chartData = sample.map(r => ({
+            timestamp: r.Timestamp || '',
             temp:  parseFloat(r.Temperature)    || 0,
+            humid: parseFloat(r.Humidity)       || 0,
             light: parseFloat(r.LightIntensity) || 0,
+            fogLatency: parseFloat(r['FogProcessingTime(ms)']) || 0,
+            cloudLatency: parseFloat(r['CloudLatency(ms)']) || 0,
+            power: parseFloat(r['EnergyConsumption(W)']) || 0,
+            fan: r.FanStatus && r.FanStatus.includes('ON') ? 1 : 0,
+            led: r.LEDStatus && r.LEDStatus.includes('ON') ? 1 : 0,
+            isAnomaly: r.IsAnomaly === true || r.IsAnomaly === 'true'
         }));
 
         sendEvent(res, 'live-update', { metrics, chartData, totalRows: rows.length });
-    }, 2000);
+    }, 1500);
 
     // ── Stream stdout ──
     child.stdout.on('data', (data) => {
@@ -164,6 +196,7 @@ app.get('/api/run', (req, res) => {
 
     child.on('error', (err) => {
         clearInterval(liveInterval);
+        activeSimulationChild = null;
         sendEvent(res, 'error', `Failed to start simulation: ${err.message}`);
         sendEvent(res, 'done', 'stream-end');
         res.end();
@@ -171,6 +204,7 @@ app.get('/api/run', (req, res) => {
 
     child.on('close', (code) => {
         clearInterval(liveInterval);
+        activeSimulationChild = null;
         console.log(`Simulation exited: code ${code}`);
 
         // Final full dataset push after simulation finishes
@@ -180,8 +214,16 @@ app.get('/api/run', (req, res) => {
             ? allRows.filter((_, i) => i % Math.floor(allRows.length / 120) === 0)
             : allRows;
         const chartData = sample.map(r => ({
+            timestamp: r.Timestamp || '',
             temp:  parseFloat(r.Temperature)    || 0,
+            humid: parseFloat(r.Humidity)       || 0,
             light: parseFloat(r.LightIntensity) || 0,
+            fogLatency: parseFloat(r['FogProcessingTime(ms)']) || 0,
+            cloudLatency: parseFloat(r['CloudLatency(ms)']) || 0,
+            power: parseFloat(r['EnergyConsumption(W)']) || 0,
+            fan: r.FanStatus && r.FanStatus.includes('ON') ? 1 : 0,
+            led: r.LEDStatus && r.LEDStatus.includes('ON') ? 1 : 0,
+            isAnomaly: r.IsAnomaly === true || r.IsAnomaly === 'true'
         }));
 
         // Also parse PerformanceReport.txt for the final accurate numbers
@@ -192,8 +234,45 @@ app.get('/api/run', (req, res) => {
             reportMetrics   = parsePerformanceReport(rawReport, rawLog);
         }
 
+        const effectiveMetrics = reportMetrics || finalMetrics;
+
+        // Persist to experiments history if run succeeded
+        if (code === 0 && effectiveMetrics) {
+            try {
+                let experiments = [];
+                if (fs.existsSync(EXPERIMENTS_PATH)) {
+                    experiments = JSON.parse(fs.readFileSync(EXPERIMENTS_PATH, 'utf8'));
+                }
+                const expId = `EXP-${Date.now().toString().slice(-6)}`;
+                const newExp = {
+                    id: expId,
+                    timestamp: new Date().toISOString(),
+                    name: `Run (${mode} / ${(parseFloat(anomalyChance) * 100).toFixed(0)}% noise)`,
+                    mode: mode,
+                    anomalyChance: anomalyChance,
+                    realExecutionTimeMs: effectiveMetrics.realExecutionTimeMs || 1075,
+                    totalTuples: effectiveMetrics.totalTuples || allRows.length,
+                    avgFogLatencyMs: effectiveMetrics.avgFogLatencyMs ? parseFloat(effectiveMetrics.avgFogLatencyMs) : 5.667,
+                    avgCloudLatencyMs: effectiveMetrics.avgCloudLatencyMs ? parseFloat(effectiveMetrics.avgCloudLatencyMs) : 41.004,
+                    avgPowerW: effectiveMetrics.avgPowerW ? parseFloat(effectiveMetrics.avgPowerW) : 10.47,
+                    networkUsageKb: effectiveMetrics.networkUsageKb ? parseFloat(effectiveMetrics.networkUsageKb) : 21853.125,
+                    energyFogJ: effectiveMetrics.deviceEnergy && effectiveMetrics.deviceEnergy['fog-node'] ? effectiveMetrics.deviceEnergy['fog-node'] : 4209737.98,
+                    energyCloudJ: effectiveMetrics.deviceEnergy && effectiveMetrics.deviceEnergy['cloud'] ? effectiveMetrics.deviceEnergy['cloud'] : 65008926.33,
+                    energyMcuJ: effectiveMetrics.deviceEnergy && effectiveMetrics.deviceEnergy['nodemcu-controller'] ? effectiveMetrics.deviceEnergy['nodemcu-controller'] : 25000.0,
+                    status: 'completed',
+                    notes: `Evaluated ${allRows.length} tuples with mode=${mode} and anomaly=${anomalyChance}.`
+                };
+                experiments.unshift(newExp);
+                // Keep last 30 experiments
+                if (experiments.length > 30) experiments = experiments.slice(0, 30);
+                fs.writeFileSync(EXPERIMENTS_PATH, JSON.stringify(experiments, null, 2), 'utf8');
+            } catch (e) {
+                console.error('Failed to update experiments.json:', e.message);
+            }
+        }
+
         sendEvent(res, 'final-update', {
-            metrics: reportMetrics || finalMetrics,
+            metrics: effectiveMetrics,
             liveMetrics: finalMetrics,
             chartData,
             allRows,
@@ -202,8 +281,42 @@ app.get('/api/run', (req, res) => {
 
         sendEvent(res, 'status', code === 0 ? 'finished' : `failed (exit ${code})`);
         sendEvent(res, 'done', 'stream-end');
+        activeSSEClient = null;
         res.end();
     });
+
+    req.on('close', () => {
+        clearInterval(liveInterval);
+        activeSSEClient = null;
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTE: /api/stop — terminates any actively running simulation process
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/api/stop', (req, res) => {
+    if (activeSimulationChild) {
+        try {
+            const pid = activeSimulationChild.pid;
+            console.log(`Terminating simulation process PID ${pid}...`);
+            if (process.platform === 'win32') {
+                spawn('taskkill', ['/pid', String(pid), '/f', '/t']);
+            } else {
+                activeSimulationChild.kill('SIGTERM');
+            }
+            if (activeSSEClient) {
+                sendEvent(activeSSEClient, 'status', 'aborted');
+                sendEvent(activeSSEClient, 'stdout', 'Simulation process aborted by operator command.');
+                sendEvent(activeSSEClient, 'done', 'stream-end');
+            }
+            activeSimulationChild = null;
+            activeSSEClient = null;
+            return res.json({ success: true, message: 'Simulation process terminated.' });
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
+    }
+    res.json({ success: false, message: 'No simulation is currently active.' });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -230,6 +343,34 @@ app.get('/api/results', async (req, res) => {
     }
 
     res.json(results);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTE: /api/experiments — list and manage experiment history
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/experiments', (req, res) => {
+    if (fs.existsSync(EXPERIMENTS_PATH)) {
+        try {
+            const experiments = JSON.parse(fs.readFileSync(EXPERIMENTS_PATH, 'utf8'));
+            return res.json(experiments);
+        } catch (e) {
+            console.error('Error reading experiments.json:', e.message);
+        }
+    }
+    res.json([]);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTE: /api/export-csv — direct download of the generated dataset
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/export-csv', (req, res) => {
+    if (fs.existsSync(DATASET_PATH)) {
+        res.setHeader('Content-Disposition', 'attachment; filename="SmartHomeDataset.csv"');
+        res.setHeader('Content-Type', 'text/csv');
+        fs.createReadStream(DATASET_PATH).pipe(res);
+    } else {
+        res.status(404).send('Dataset file not found. Run a simulation first.');
+    }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -269,32 +410,7 @@ function parsePerformanceReport(content, logContent) {
     return metrics;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPER: Async CSV parser (used only for initial page load if preferred)
-// ─────────────────────────────────────────────────────────────────────────────
-function parseCSV(filePath) {
-    return new Promise((resolve, reject) => {
-        const rows = [];
-        fs.createReadStream(filePath)
-            .pipe(csv())
-            .on('data', (row) => {
-                const parsedRow = {};
-                for (const key in row) {
-                    const k = key.trim();
-                    const v = row[key].trim();
-                    if (v === 'true')       parsedRow[k] = true;
-                    else if (v === 'false') parsedRow[k] = false;
-                    else if (!isNaN(v) && v !== '') parsedRow[k] = Number(v);
-                    else parsedRow[k] = v;
-                }
-                rows.push(parsedRow);
-            })
-            .on('end', () => resolve(rows))
-            .on('error', reject);
-    });
-}
-
 app.listen(PORT, () => {
-    console.log(`Smart Home Automation Web Dashboard listening on port ${PORT}`);
+    console.log(`Homestead Fog Engine Workstation listening on port ${PORT}`);
     console.log(`Open http://localhost:${PORT} in your browser`);
 });

@@ -3,374 +3,2083 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Home Operations Desk</title>
-    <!-- Google Fonts -->
+    <title>Homestead Fog Engine // Edge Simulation & Telemetry Workstation</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-dark">
 
+    <!-- GLOBAL APPLICATION SHELL -->
+    <div class="app-shell" id="app-shell">
 
-    <div class="dashboard-container">
-        <!-- HEADER -->
-        <header class="app-header">
-            <div class="header-copy">
-                <div class="header-logo">
-                    <div class="logo-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+        <!-- ===================================================================
+             SIDEBAR NAVIGATION
+             =================================================================== -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <a href="#landing" class="brand-link" id="brand-link" title="View Public Landing Page">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
                         </svg>
                     </div>
-                    <div class="logo-text">
-                        <span class="eyebrow">Homestead ECS // Simulation Node #104</span>
-                        <h1>Homestead Fog Engine</h1>
-                        <p>Research prototype for predictive fog-computing topologies, dual-stream telemetry logging, and local energy footprints.</p>
+                    <div class="brand-text">
+                        <div class="brand-title">Homestead Fog</div>
+                        <div class="brand-subtitle">iFogSim2 • v2.1-SNAPSHOT</div>
                     </div>
-                </div>
-                <div class="header-chips">
-                    <span class="header-chip">Local Dev</span>
-                    <span class="header-chip">iFogSim2 v2.1</span>
-                    <span class="header-chip">SQLite In-Memory</span>
-                </div>
+                </a>
             </div>
-            <div class="header-actions">
-                <button id="btn-run" class="btn btn-primary">
-                    <svg class="icon btn-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    <span>Run Simulation</span>
+
+            <!-- Workspace Mode Switcher -->
+            <div class="sidebar-mode-toggle">
+                <button type="button" class="mode-btn active" id="btn-mode-console" data-target="console">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <span>Console</span>
                 </button>
-                <div class="header-profile">
-                    <div class="profile-info">
-                        <span class="profile-name">Arpit Shirbhate</span>
-                        <span class="profile-role">Operator (Dev)</span>
+                <button type="button" class="mode-btn" id="btn-mode-landing" data-target="landing">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Landing</span>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Simulation Workstation</div>
+                <a href="#overview" class="nav-item active" data-view="view-overview">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span class="nav-label">Overview</span>
+                    <span class="nav-badge" id="badge-overview-live">IDLE</span>
+                </a>
+
+                <a href="#simulation" class="nav-item" data-view="view-simulation">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    <span class="nav-label">Simulation</span>
+                </a>
+
+                <a href="#topology" class="nav-item" data-view="view-topology">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    <span class="nav-label">Topology</span>
+                </a>
+
+                <a href="#telemetry" class="nav-item" data-view="view-telemetry">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    <span class="nav-label">Telemetry</span>
+                </a>
+
+                <a href="#dataset" class="nav-item" data-view="view-dataset">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    <span class="nav-label">Dataset</span>
+                    <span class="nav-counter" id="nav-dataset-count">0</span>
+                </a>
+
+                <a href="#experiments" class="nav-item" data-view="view-experiments">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2v6h12V2"/>
+                        <path d="M6 18a6 6 0 0 0 12 0V8H6z"/>
+                    </svg>
+                    <span class="nav-label">Experiments</span>
+                </a>
+
+                <div class="nav-section-label">Resources</div>
+                <a href="#documentation" class="nav-item" data-view="view-documentation">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                    <span class="nav-label">Documentation</span>
+                </a>
+
+                <a href="#settings" class="nav-item" data-view="view-settings">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span class="nav-label">Settings</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer User Profile -->
+            <div class="sidebar-footer">
+                <div class="cluster-status">
+                    <span class="pulse-dot" id="cluster-pulse"></span>
+                    <span class="cluster-label">JVM Core: <strong id="lbl-jvm-status">Ready</strong></span>
+                </div>
+                <div class="operator-card">
+                    <div class="operator-avatar">AS</div>
+                    <div class="operator-info">
+                        <div class="operator-name">Arpit Shirbhate</div>
+                        <div class="operator-role">Simulation Lead • Node #104</div>
                     </div>
-                    <div class="profile-avatar">AM</div>
                 </div>
             </div>
-        </header>
+        </aside>
 
-        <!-- NOTICE BANNER -->
-        <div class="dev-banner">
-            <span class="banner-badge">NOTICE</span>
-            <span class="banner-text">Logging target is set to DualStream (Terminal + SimulationLog.txt). Local database will dump to SmartHomeDataset.csv upon JVM termination.</span>
-            <button class="banner-close" onclick="this.parentElement.remove()">×</button>
-        </div>
+        <!-- ===================================================================
+             MAIN APPLICATION CONTENT WRAPPER
+             =================================================================== -->
+        <div class="app-main">
 
+            <!-- Global Top Bar Header (Visible in console views) -->
+            <header class="app-topbar" id="app-topbar">
+                <div class="topbar-left">
+                    <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Navigation">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    </button>
 
-        <!-- TOP LEVEL METRICS -->
-        <section class="metrics-grid">
-            <div class="metric-card" id="card-execution-time">
-                <div class="metric-icon time-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-                <div class="metric-content">
-                    <span class="metric-label">Execution Time</span>
-                    <span class="metric-value" id="val-execution-time">--</span>
-                    <span class="metric-unit">ms (Real World)</span>
-                </div>
-            </div>
-            
-            <div class="metric-card" id="card-tuples">
-                <div class="metric-icon tuples-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                </div>
-                <div class="metric-content">
-                    <span class="metric-label">Tuples Processed</span>
-                    <span class="metric-value" id="val-tuples">--</span>
-                    <span class="metric-unit">Simulated Packets</span>
-                </div>
-            </div>
-
-            <div class="metric-card" id="card-latency">
-                <div class="metric-icon latency-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                    </svg>
-                </div>
-                <div class="metric-content">
-                    <span class="metric-label">Avg Fog Latency</span>
-                    <span class="metric-value" id="val-latency">--</span>
-                    <span class="metric-unit">milliseconds</span>
-                </div>
-            </div>
-
-            <div class="metric-card" id="card-power">
-                <div class="metric-icon power-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                    </svg>
-                </div>
-                <div class="metric-content">
-                    <span class="metric-label">Avg System Power</span>
-                    <span class="metric-value" id="val-power">--</span>
-                    <span class="metric-unit">Watts</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- MAIN LAYOUT GRID -->
-        <main class="dashboard-grid">
-            
-            <!-- LEFT COLUMN: TOPOLOGY & TERMINAL -->
-            <div class="grid-col col-left">
-                <!-- TOPOLOGY VIEWER -->
-                <div class="dashboard-panel panel-topology">
-                    <div class="panel-header">
-                        <h2>Network Topology Map</h2>
-                        <span class="badge" id="lbl-topology-status">Idle</span>
+                    <div class="breadcrumb-container">
+                        <span class="crumb-root">Homestead Fog Engine</span>
+                        <span class="crumb-divider">/</span>
+                        <span class="crumb-current" id="crumb-current-view">Overview</span>
                     </div>
-                    <!-- SIMULATION PROGRESS BAR -->
-                    <div class="sim-progress-wrapper" id="sim-progress-wrapper" style="display:none">
-                        <div class="sim-progress-track">
-                            <div class="sim-progress-fill" id="sim-progress-fill"></div>
+
+                    <div class="topbar-status-chip" id="topbar-status-chip">
+                        <span class="status-indicator-dot" id="header-status-dot"></span>
+                        <span class="status-indicator-text" id="header-status-text">Engine Idle</span>
+                    </div>
+                </div>
+
+                <div class="topbar-center">
+                    <div class="ticker-item">
+                        <span class="ticker-label">Tuples</span>
+                        <span class="ticker-val" id="ticker-tuples">0</span>
+                    </div>
+                    <span class="ticker-sep">|</span>
+                    <div class="ticker-item">
+                        <span class="ticker-label">Fog Latency</span>
+                        <span class="ticker-val" id="ticker-latency">-- ms</span>
+                    </div>
+                    <span class="ticker-sep">|</span>
+                    <div class="ticker-item">
+                        <span class="ticker-label">Power</span>
+                        <span class="ticker-val" id="ticker-power">-- W</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Quick Mode Selector -->
+                    <div class="quick-select-wrap" title="Actuator Control Mode">
+                        <select id="quick-actuator-mode" class="compact-select">
+                            <option value="auto">Mode: Auto (Fog ML)</option>
+                            <option value="fan-on">Override: Fan Forced ON</option>
+                            <option value="led-on">Override: LED Forced ON</option>
+                            <option value="both-off">Override: Both Forced OFF</option>
+                        </select>
+                    </div>
+
+                    <!-- Abort button (hidden when not running) -->
+                    <button type="button" class="btn btn-danger btn-compact" id="btn-quick-stop" style="display:none;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                        <span>Abort</span>
+                    </button>
+
+                    <!-- Run Simulation button -->
+                    <button type="button" class="btn btn-primary btn-compact" id="btn-quick-run">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span id="btn-quick-run-text">Run Simulation</span>
+                    </button>
+
+                    <button type="button" class="btn btn-ghost btn-icon-only" id="btn-open-landing" title="Public Project Briefing">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Global Simulation Progress Banner (during active runs) -->
+            <div class="global-progress-strip" id="global-progress-strip" style="display:none;">
+                <div class="progress-meta">
+                    <span class="progress-title" id="progress-phase-title">Executing iFogSim2 Discrete Event Scheduler...</span>
+                    <span class="progress-pct" id="progress-pct-label">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar" id="global-progress-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Global Anomaly Alert Banner -->
+            <div class="system-alert-banner" id="system-anomaly-banner" style="display:none;">
+                <div class="alert-icon">⚠</div>
+                <div class="alert-content">
+                    <span class="alert-heading">Synthetic Anomaly Injected</span>
+                    <span class="alert-desc" id="system-anomaly-desc">Environmental telemetry reading deviated outside safe bounds. Actuator policy reacting.</span>
+                </div>
+                <button type="button" class="alert-dismiss" onclick="this.parentElement.style.display='none'">Dismiss</button>
+            </div>
+
+            <!-- ===================================================================
+                 WORKSPACE VIEW CONTAINER
+                 =================================================================== -->
+            <main class="view-container" id="view-container">
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 1: PUBLIC LANDING PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-landing" id="view-landing" style="display:none;">
+                    
+                    <!-- Landing Page Top Nav -->
+                    <header class="landing-header">
+                        <div class="landing-nav-wrap">
+                            <div class="landing-logo">
+                                <div class="brand-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                                        <polyline points="2 17 12 22 22 17"/>
+                                        <polyline points="2 12 12 17 22 12"/>
+                                    </svg>
+                                </div>
+                                <span class="logo-title">Homestead Fog Engine</span>
+                                <span class="badge badge-subtle">Research Platform</span>
+                            </div>
+
+                            <nav class="landing-nav-links">
+                                <a href="#landing-how-it-works">How It Works</a>
+                                <a href="#landing-architecture">Architecture</a>
+                                <a href="#landing-metrics">Telemetry Metrics</a>
+                                <a href="#landing-why-fog">Fog Advantage</a>
+                                <a href="#landing-workflow">Workflow</a>
+                            </nav>
+
+                            <div class="landing-nav-cta">
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-landing-to-docs">Read Docs</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-landing-enter-console">Explore Simulation &rarr;</button>
+                            </div>
                         </div>
-                        <span class="sim-progress-label" id="sim-progress-label">0%</span>
-                    </div>
-                    <div class="panel-body topology-body">
-                        <div class="topology-container">
-                            <!-- Cloud Level -->
-                            <div class="topology-level level-0">
-                                <div class="node-card cloud-node" id="node-cloud">
-                                    <div class="node-dot"></div>
-                                    <div class="node-info">
-                                        <span class="node-title">Cloud Datacenter</span>
-                                        <span class="node-detail">cloud (MIPS: 44,800)</span>
-                                    </div>
-                                    <div class="node-metric" id="node-cloud-energy">--</div>
+                    </header>
+
+                    <!-- Landing Hero Section -->
+                    <section class="landing-hero-section">
+                        <div class="hero-content">
+                            <div class="hero-eyebrow">
+                                <span class="pulse-indicator"></span>
+                                <span>iFogSim2 Discrete Event Modeling System</span>
+                            </div>
+                            <h1 class="hero-title">Homestead Fog Engine</h1>
+                            <p class="hero-subtitle">Simulate intelligent edge environments. Observe telemetry. Measure performance.</p>
+                            <p class="hero-description">
+                                A production-grade research platform modeling hierarchical Cloud, Fog Gateway, and IoT Edge nodes. 
+                                Evaluates multi-channel sensor feeds, local decision engine latencies, WAN bandwidth constraints, 
+                                and discrete energy consumption in real time.
+                            </p>
+
+                            <div class="hero-actions">
+                                <button type="button" class="btn btn-primary btn-lg" id="btn-hero-explore">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    <span>Explore the Simulation</span>
+                                </button>
+                                <a href="#landing-how-it-works" class="btn btn-secondary btn-lg">
+                                    <span>How It Works</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                </a>
+                            </div>
+
+                            <div class="hero-specs-row">
+                                <div class="spec-pill">
+                                    <span class="spec-val">3-Tier</span>
+                                    <span class="spec-lbl">Topology Graph</span>
+                                </div>
+                                <div class="spec-sep">/</div>
+                                <div class="spec-pill">
+                                    <span class="spec-val">&lt; 6.0 ms</span>
+                                    <span class="spec-lbl">Fog Latency</span>
+                                </div>
+                                <div class="spec-sep">/</div>
+                                <div class="spec-pill">
+                                    <span class="spec-val">10,001</span>
+                                    <span class="spec-lbl">Tuples / Run</span>
+                                </div>
+                                <div class="spec-sep">/</div>
+                                <div class="spec-pill">
+                                    <span class="spec-val">DualStream</span>
+                                    <span class="spec-lbl">SSE Logging</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Hero Interactive Architecture Visualizer -->
+                        <div class="hero-visual-card">
+                            <div class="hero-visual-header">
+                                <div class="visual-header-title">
+                                    <span class="code-tag">SYSTEM_TOPOLOGY // SIMULATED DATA FLOW</span>
+                                </div>
+                                <div class="visual-live-tag">
+                                    <span class="live-dot"></span> LIVE PACKET PIPELINE
+                                </div>
+                            </div>
+
+                            <div class="hero-arch-diagram">
+                                <!-- Tier 0: Cloud -->
+                                <div class="arch-layer arch-layer-cloud">
+                                    <div class="layer-header">
+                                        <div class="layer-tag">TIER 0 • CENTRALIZED CLOUD</div>
+                                        <div class="layer-specs">MIPS: 44,800 • RAM: 40 GB</div>
+                                    </div>
+                                    <div class="layer-node-box">
+                                        <div class="node-icon-wrap">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                                        </div>
+                                        <div class="node-desc">
+                                            <div class="node-name">Cloud Datacenter (<span class="mono">cloud</span>)</div>
+                                            <div class="node-meta">Long-Term Data Warehousing • Module: <span class="mono">cloud_history_module</span></div>
+                                        </div>
+                                        <div class="node-badge-val">40ms WAN</div>
+                                    </div>
+                                </div>
+
+                                <!-- Link: WAN Connector with animated packets -->
+                                <div class="arch-bus arch-bus-wan">
+                                    <div class="bus-line"></div>
+                                    <div class="bus-packet packet-up" style="animation-delay: 0s;"></div>
+                                    <div class="bus-packet packet-up" style="animation-delay: 1.2s;"></div>
+                                    <div class="bus-label"><span class="mono">CLOUD_SUMMARY_DATA</span> (5 MI • WAN Link: 40ms, 100 Mbps)</div>
+                                </div>
+
+                                <!-- Tier 1: Fog Gateway -->
+                                <div class="arch-layer arch-layer-fog">
+                                    <div class="layer-header">
+                                        <div class="layer-tag">TIER 1 • LOCAL EDGE / FOG GATEWAY</div>
+                                        <div class="layer-specs">MIPS: 2,800 • RAM: 4 GB</div>
+                                    </div>
+                                    <div class="layer-node-box highlight-box">
+                                        <div class="node-icon-wrap">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                                        </div>
+                                        <div class="node-desc">
+                                            <div class="node-name">Smart Home Fog Gateway (<span class="mono">fog-node</span>)</div>
+                                            <div class="node-meta">Real-time Rule Inference • DecisionEngine.java • CSV Persistence</div>
+                                        </div>
+                                        <div class="node-badge-val accent">&lt; 5.7ms Local</div>
+                                    </div>
+                                </div>
+
+                                <!-- Link: LAN Connector with bidirectional packets -->
+                                <div class="arch-bus arch-bus-lan">
+                                    <div class="bus-line"></div>
+                                    <div class="bus-packet packet-up" style="animation-delay: 0.4s;"></div>
+                                    <div class="bus-packet packet-down" style="animation-delay: 0.9s;"></div>
+                                    <div class="bus-label"><span class="mono">AGGREGATED_SENSOR_DATA</span> &larr; &rarr; <span class="mono">ACTUATOR_COMMANDS</span> (LAN: 2ms, 100 Mbps)</div>
+                                </div>
+
+                                <!-- Tier 2: Edge MCU & Peripherals -->
+                                <div class="arch-layer arch-layer-mcu">
+                                    <div class="layer-header">
+                                        <div class="layer-tag">TIER 2 • EMBEDDED CONTROLLER & PERIPHERALS</div>
+                                        <div class="layer-specs">ESP8266 • MIPS: 80 • RAM: 4 MB</div>
+                                    </div>
+                                    <div class="layer-mcu-row">
+                                        <div class="mcu-box">
+                                            <div class="node-icon-wrap">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                                            </div>
+                                            <div class="mcu-details">
+                                                <div class="node-name">NodeMCU ESP8266 (<span class="mono">nodemcu-controller</span>)</div>
+                                                <div class="node-meta">Virtual Sensor Sampling Hub & Actuator Driver</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="peripherals-grid">
+                                            <div class="periph-pill">
+                                                <span class="dot-indicator sensor"></span>
+                                                <span>DHT11 Temp/Humidity</span>
+                                            </div>
+                                            <div class="periph-pill">
+                                                <span class="dot-indicator sensor"></span>
+                                                <span>LDR Light (0-1023)</span>
+                                            </div>
+                                            <div class="periph-pill">
+                                                <span class="dot-indicator actuator"></span>
+                                                <span>Smart Fan (80W)</span>
+                                            </div>
+                                            <div class="periph-pill">
+                                                <span class="dot-indicator actuator"></span>
+                                                <span>Smart LED (10W)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 2: How It Works -->
+                    <section class="landing-section" id="landing-how-it-works">
+                        <div class="section-container">
+                            <div class="section-meta-header">
+                                <span class="section-num">02</span>
+                                <span class="section-tag">EXECUTION METHODOLOGY</span>
+                                <h2 class="section-title">How the Simulation Operates</h2>
+                                <p class="section-subtitle">A discrete event pipeline translating mathematical sensor models into distributed tuple routing.</p>
+                            </div>
+
+                            <div class="workflow-schematic-grid">
+                                <div class="step-card">
+                                    <div class="step-marker">01</div>
+                                    <div class="step-tag">TOPOLOGY SPEC</div>
+                                    <h3 class="step-title">Define Environment</h3>
+                                    <p class="step-desc">
+                                        Configure physical MIPS ratings, memory footprints, and network characteristics across Cloud (44.8k MIPS), Fog (2.8k MIPS), and NodeMCU (80 MIPS) nodes.
+                                    </p>
+                                    <div class="step-spec-footer">
+                                        <code>iFogSim2 • FogNodeManager.java</code>
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-marker">02</div>
+                                    <div class="step-tag">DISCRETE SCHEDULER</div>
+                                    <h3 class="step-title">Run Simulation</h3>
+                                    <p class="step-desc">
+                                        The CloudSim discrete event kernel processes 50,005 simulated seconds. Virtual sensors emit environmental tuples every 5.0 seconds under diurnal curves.
+                                    </p>
+                                    <div class="step-spec-footer">
+                                        <code>CloudSim 3.0 Engine • 10,001 Timesteps</code>
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-marker">03</div>
+                                    <div class="step-tag">DECISION ENGINE</div>
+                                    <h3 class="step-title">Observe Telemetry</h3>
+                                    <p class="step-desc">
+                                        The Fog Node executes classification logic in real time: evaluates comfort thresholds, handles occupancy overrides, flags anomalies, and commands actuators.
+                                    </p>
+                                    <div class="step-spec-footer">
+                                        <code>DecisionEngine.java • 1.0 Selectivity</code>
+                                    </div>
+                                </div>
+
+                                <div class="step-card">
+                                    <div class="step-marker">04</div>
+                                    <div class="step-tag">RESEARCH DATASET</div>
+                                    <h3 class="step-title">Analyze Results</h3>
+                                    <p class="step-desc">
+                                        Inspect generated CSV datasets, assess fog vs. cloud processing latencies, compute cumulative energy footprints in Joules, and benchmark decision accuracy.
+                                    </p>
+                                    <div class="step-spec-footer">
+                                        <code>SmartHomeDataset.csv • DualStream</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 3: System Architecture -->
+                    <section class="landing-section section-alt" id="landing-architecture">
+                        <div class="section-container">
+                            <div class="section-meta-header">
+                                <span class="section-num">03</span>
+                                <span class="section-tag">ENGINEERING BLUEPRINT</span>
+                                <h2 class="section-title">System Architecture & Tuple Dataflow</h2>
+                                <p class="section-subtitle">Multi-tier hierarchical placement with deterministic routing and fractional selectivity.</p>
+                            </div>
+
+                            <div class="blueprint-layout">
+                                <div class="blueprint-diagram-panel">
+                                    <div class="blueprint-header">
+                                        <span>APPLICATION MODULE GRAPH &amp; SELECTIVITY POLICY</span>
+                                        <span class="mono">DAG v2.1</span>
+                                    </div>
+                                    <div class="blueprint-body">
+                                        <div class="dag-flow-item">
+                                            <div class="dag-node">Virtual Sensor Generator</div>
+                                            <div class="dag-arrow">&rarr; <span class="mono">AGGREGATED_SENSOR_DATA</span> (10 MI, 100 bytes) &rarr;</div>
+                                            <div class="dag-node highlight">fog_processor_module</div>
+                                        </div>
+
+                                        <div class="dag-split-row">
+                                            <div class="dag-branch">
+                                                <div class="branch-arrow">&darr; <span class="mono">FAN_COMMAND</span> (1 MI)</div>
+                                                <div class="dag-node actuator">FAN_ACTUATOR (80W)</div>
+                                            </div>
+                                            <div class="dag-branch">
+                                                <div class="branch-arrow">&darr; <span class="mono">LED_COMMAND</span> (1 MI)</div>
+                                                <div class="dag-node actuator">LED_ACTUATOR (10W)</div>
+                                            </div>
+                                            <div class="dag-branch">
+                                                <div class="branch-arrow">&uarr; <span class="mono">CLOUD_SUMMARY_DATA</span> (5 MI)</div>
+                                                <div class="dag-node cloud">cloud_history_module</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="blueprint-footer">
+                                        <div class="bp-legend-item"><span class="legend-box local"></span> Local LAN Interface (2ms Latency)</div>
+                                        <div class="bp-legend-item"><span class="legend-box wan"></span> WAN Backhaul (40ms Latency)</div>
+                                    </div>
+                                </div>
+
+                                <div class="blueprint-specs-panel">
+                                    <h4 class="specs-title">Physical Topology Hardware Ratings</h4>
+                                    <table class="specs-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tier / Entity</th>
+                                                <th>Processing Capacity</th>
+                                                <th>RAM</th>
+                                                <th>Uplink / Latency</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><span class="tier-tag cloud">Cloud</span> Datacenter</td>
+                                                <td class="mono">44,800 MIPS</td>
+                                                <td>40,000 MB</td>
+                                                <td>100 Mbps (WAN: 40ms)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="tier-tag fog">Fog</span> Node Gateway</td>
+                                                <td class="mono">2,800 MIPS</td>
+                                                <td>4,000 MB</td>
+                                                <td>100 Mbps (LAN: 2ms)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="tier-tag mcu">Edge</span> NodeMCU ESP8266</td>
+                                                <td class="mono">80 MIPS</td>
+                                                <td>4 MB</td>
+                                                <td>100 Mbps (Local Bus)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><span class="tier-tag sensor">Sensors</span> DHT11 / LDR</td>
+                                                <td class="mono">Continuous</td>
+                                                <td>N/A</td>
+                                                <td>Period: 5.0 sec</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 4: What The Platform Measures -->
+                    <section class="landing-section" id="landing-metrics">
+                        <div class="section-container">
+                            <div class="section-meta-header">
+                                <span class="section-num">04</span>
+                                <span class="section-tag">TELEMETRY BENCHMARKS</span>
+                                <h2 class="section-title">What the Platform Measures</h2>
+                                <p class="section-subtitle">Real-time observational telemetry and discrete energy consumption accounting.</p>
+                            </div>
+
+                            <div class="telemetry-matrix">
+                                <div class="matrix-column">
+                                    <div class="matrix-heading">Computational & Network Performance</div>
+                                    <div class="matrix-row">
+                                        <div class="m-stat">
+                                            <div class="m-val mono">1,075 ms</div>
+                                            <div class="m-label">Real Execution Time</div>
+                                            <div class="m-sub">JVM wall-clock duration for 50,005 simulated seconds (~46x real-time speedup).</div>
+                                        </div>
+                                        <div class="m-stat">
+                                            <div class="m-val mono">9,991</div>
+                                            <div class="m-label">Tuples Processed</div>
+                                            <div class="m-sub">Total simulated sensor bundles and actuator command packets dispatched.</div>
+                                        </div>
+                                    </div>
+                                    <div class="matrix-row">
+                                        <div class="m-stat">
+                                            <div class="m-val mono accent">5.67 ms</div>
+                                            <div class="m-label">Average Fog Latency</div>
+                                            <div class="m-sub">Local decision loop turnaround compared to 41.0 ms cloud round-trip delay.</div>
+                                        </div>
+                                        <div class="m-stat">
+                                            <div class="m-val mono">21.8 MB</div>
+                                            <div class="m-label">Simulated Network Usage</div>
+                                            <div class="m-sub">Tracked across simulated network buffers via NetworkUsageMonitor.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="matrix-column">
+                                    <div class="matrix-heading">Environmental & Energy Dynamics</div>
+                                    <div class="matrix-row">
+                                        <div class="m-stat">
+                                            <div class="m-val mono">26.03 °C</div>
+                                            <div class="m-label">Mean Temperature</div>
+                                            <div class="m-sub">Diurnal sinusoidal modeling with human body heat perturbations.</div>
+                                        </div>
+                                        <div class="m-stat">
+                                            <div class="m-val mono">437 LDR</div>
+                                            <div class="m-label">Ambient Light Flux</div>
+                                            <div class="m-sub">Solar elevation simulation with nighttime ambient falloff (40-80 units).</div>
+                                        </div>
+                                    </div>
+                                    <div class="matrix-row">
+                                        <div class="m-stat">
+                                            <div class="m-val mono">10.47 W</div>
+                                            <div class="m-label">Instantaneous Power</div>
+                                            <div class="m-sub">Dynamic power draw combining idle baseline (5W), Fan (80W), and LED (10W).</div>
+                                        </div>
+                                        <div class="m-stat">
+                                            <div class="m-val mono">4.21 MJ</div>
+                                            <div class="m-label">Fog Energy Footprint</div>
+                                            <div class="m-sub">Computed mathematically via continuous MIPS utilization integrals.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 5: Why Fog Computing -->
+                    <section class="landing-section section-alt" id="landing-why-fog">
+                        <div class="section-container">
+                            <div class="section-meta-header">
+                                <span class="section-num">05</span>
+                                <span class="section-tag">ARCHITECTURAL RATIONALE</span>
+                                <h2 class="section-title">Why Fog Computing Matters for Smart Systems</h2>
+                                <p class="section-subtitle">Evaluating the quantifiable advantages of localized edge gateways over pure cloud deployments.</p>
+                            </div>
+
+                            <div class="pillars-grid">
+                                <div class="pillar-item">
+                                    <div class="pillar-num">01</div>
+                                    <h3 class="pillar-title">Sub-6ms Reaction Latency</h3>
+                                    <p class="pillar-text">
+                                        Critical safety actuations (e.g. overheating thresholds, hazard anomalies) execute in 5.6ms on the local gateway rather than enduring 40ms+ WAN delays.
+                                    </p>
+                                </div>
+
+                                <div class="pillar-item">
+                                    <div class="pillar-num">02</div>
+                                    <h3 class="pillar-title">Autonomous Local Processing</h3>
+                                    <p class="pillar-text">
+                                        If upstream internet connectivity is severed, the fog node continues evaluating telemetry and managing home automation policies with zero downtime.
+                                    </p>
+                                </div>
+
+                                <div class="pillar-item">
+                                    <div class="pillar-num">03</div>
+                                    <h3 class="pillar-title">Bandwidth Preservation</h3>
+                                    <p class="pillar-text">
+                                        Rather than flooding remote cloud servers with raw 5-second sensor ticks, the gateway compresses and batches aggregated summaries upstream.
+                                    </p>
+                                </div>
+
+                                <div class="pillar-item">
+                                    <div class="pillar-num">04</div>
+                                    <h3 class="pillar-title">Continuous Energy Awareness</h3>
+                                    <p class="pillar-text">
+                                        Algorithmic energy accounting accurately tracks power draw in Watts and total Megajoules, preventing needless actuator activation when unpopulated.
+                                    </p>
+                                </div>
+
+                                <div class="pillar-item">
+                                    <div class="pillar-num">05</div>
+                                    <h3 class="pillar-title">Scalable IoT Density</h3>
+                                    <p class="pillar-text">
+                                        Enables scaling to thousands of smart rooms and IoT peripherals without introducing centralized database write bottlenecks or cloud billing spikes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 6: Simulation Workflow -->
+                    <section class="landing-section" id="landing-workflow">
+                        <div class="section-container">
+                            <div class="section-meta-header">
+                                <span class="section-num">06</span>
+                                <span class="section-tag">EXPERIMENT PIPELINE</span>
+                                <h2 class="section-title">Simulation Lifecycle</h2>
+                                <p class="section-subtitle">From topology instantiation to machine learning dataset export.</p>
+                            </div>
+
+                            <div class="timeline-bar">
+                                <div class="timeline-step">
+                                    <div class="t-node">1</div>
+                                    <div class="t-title">Configure</div>
+                                    <div class="t-desc">Define MIPS, memory, and anomaly parameters</div>
+                                </div>
+                                <div class="t-connector"></div>
+                                <div class="timeline-step">
+                                    <div class="t-node">2</div>
+                                    <div class="t-title">Deploy</div>
+                                    <div class="t-desc">Instantiate iFogSim2 topology &amp; modules</div>
+                                </div>
+                                <div class="t-connector"></div>
+                                <div class="timeline-step">
+                                    <div class="t-node">3</div>
+                                    <div class="t-title">Simulate</div>
+                                    <div class="t-desc">Execute discrete event engine in Java JVM</div>
+                                </div>
+                                <div class="t-connector"></div>
+                                <div class="timeline-step">
+                                    <div class="t-node">4</div>
+                                    <div class="t-title">Collect</div>
+                                    <div class="t-desc">Stream telemetry over SSE to workstation</div>
+                                </div>
+                                <div class="t-connector"></div>
+                                <div class="timeline-step">
+                                    <div class="t-node">5</div>
+                                    <div class="t-title">Analyze</div>
+                                    <div class="t-desc">Train classifiers on 10,000-row ML dataset</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 7: Final CTA -->
+                    <section class="landing-cta-section">
+                        <div class="cta-inner">
+                            <h2 class="cta-title">Run Your First Simulation</h2>
+                            <p class="cta-subtitle">Launch the Homestead Fog Engine workstation to inspect live topology dataflows, monitor telemetry curves, and evaluate edge metrics.</p>
+                            <div class="cta-buttons">
+                                <button type="button" class="btn btn-primary btn-xl" id="btn-cta-launch">
+                                    <span>Launch Simulation Workstation</span>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Landing Footer -->
+                    <footer class="landing-footer">
+                        <div class="footer-wrap">
+                            <div class="footer-left">
+                                <span class="footer-brand">Homestead Fog Engine</span>
+                                <span class="footer-meta">iFogSim2 &bull; CloudSim 3.0 &bull; EcoSync Research 2026</span>
+                            </div>
+                            <div class="footer-right">
+                                <a href="#landing-how-it-works">How It Works</a>
+                                <a href="#landing-architecture">Architecture</a>
+                                <a href="#documentation">Docs</a>
+                                <a href="#overview">Console</a>
+                            </div>
+                        </div>
+                    </footer>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 2: APPLICATION OVERVIEW / COCKPIT DASHBOARD
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-overview active" id="view-overview">
+
+                    <!-- Compact Research Metrics Strip (6 cohesive metrics) -->
+                    <div class="metric-strip" id="overview-metric-strip">
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Execution Time</span>
+                                <span class="strip-tag">Real World</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono" id="val-execution-time">--</span>
+                                <span class="strip-unit">ms</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-execution-speed">50,005s simulated</div>
+                        </div>
+
+                        <div class="strip-divider"></div>
+
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Tuples Processed</span>
+                                <span class="strip-tag">Discrete Packets</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono" id="val-tuples">--</span>
+                                <span class="strip-unit">pkts</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-tuples-rate">5.0s emission interval</div>
+                        </div>
+
+                        <div class="strip-divider"></div>
+
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Avg Fog Latency</span>
+                                <span class="strip-tag accent">Local Turnaround</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono accent" id="val-latency">--</span>
+                                <span class="strip-unit">ms</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-cloud-latency">vs. ~41.0 ms Cloud WAN</div>
+                        </div>
+
+                        <div class="strip-divider"></div>
+
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Avg System Power</span>
+                                <span class="strip-tag">Instantaneous</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono" id="val-power">--</span>
+                                <span class="strip-unit">W</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-power-state">Base 5W • Fan 80W • LED 10W</div>
+                        </div>
+
+                        <div class="strip-divider"></div>
+
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Network Usage</span>
+                                <span class="strip-tag">Simulated</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono" id="val-network-usage">--</span>
+                                <span class="strip-unit">KB</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-network-cost">Uplink: 100 Mbps</div>
+                        </div>
+
+                        <div class="strip-divider"></div>
+
+                        <div class="strip-item">
+                            <div class="strip-item-meta">
+                                <span class="strip-label">Fog Energy</span>
+                                <span class="strip-tag">Total Consumed</span>
+                            </div>
+                            <div class="strip-val-wrap">
+                                <span class="strip-val mono" id="val-fog-energy">--</span>
+                                <span class="strip-unit">MJ</span>
+                            </div>
+                            <div class="strip-sub mono" id="sub-cloud-energy">Cloud: -- MJ</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Cockpit Grid -->
+                    <div class="overview-grid">
+                        
+                        <!-- Left Column: Network Topology Map -->
+                        <div class="col-topology">
+                            <div class="panel panel-topology">
+                                <div class="panel-header">
+                                    <div class="header-left">
+                                        <div class="panel-title-wrap">
+                                            <span class="panel-eyebrow">Physical Graph</span>
+                                            <h2 class="panel-title">Network Topology Map</h2>
+                                        </div>
+                                    </div>
+                                    <div class="header-right">
+                                        <div class="topology-controls-bar">
+                                            <div class="speed-toggle" title="Packet Animation Speed">
+                                                <button type="button" class="ctrl-chip active" id="btn-speed-norm">1x</button>
+                                                <button type="button" class="ctrl-chip" id="btn-speed-fast">5x</button>
+                                                <button type="button" class="ctrl-chip" id="btn-speed-pause">Pause</button>
+                                            </div>
+                                            <span class="badge" id="lbl-topology-status">Idle</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body topology-body-wrap">
+                                    <div class="topology-container" id="topology-diagram">
+                                        
+                                        <!-- Level 0: Cloud -->
+                                        <div class="topo-tier tier-cloud">
+                                            <div class="node-item node-cloud" id="node-cloud" data-node="cloud" title="Click to inspect Cloud node">
+                                                <div class="node-indicator"></div>
+                                                <div class="node-content">
+                                                    <div class="node-title-row">
+                                                        <span class="node-name">Cloud Datacenter</span>
+                                                        <span class="node-role-tag">cloud</span>
+                                                    </div>
+                                                    <div class="node-specs-row">
+                                                        <span class="mono">MIPS: 44,800</span>
+                                                        <span class="spec-dot">&bull;</span>
+                                                        <span class="mono">RAM: 40 GB</span>
+                                                    </div>
+                                                </div>
+                                                <div class="node-metric-box">
+                                                    <span class="metric-label">Energy</span>
+                                                    <span class="metric-val mono" id="node-cloud-energy">--</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- WAN Link SVG Connector -->
+                                        <div class="topo-link link-cloud-fog" id="link-cloud-fog">
+                                            <svg class="topo-link-svg" viewBox="0 0 10 60" preserveAspectRatio="none">
+                                                <line x1="5" y1="0" x2="5" y2="60" class="link-track-line"/>
+                                                <circle class="link-packet p1" cx="5" r="3"></circle>
+                                                <circle class="link-packet p2" cx="5" r="2.5"></circle>
+                                            </svg>
+                                            <div class="link-annotation">
+                                                <span class="link-label">WAN Interface</span>
+                                                <span class="link-val mono">40ms &bull; 100Mbps</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Level 1: Fog Gateway -->
+                                        <div class="topo-tier tier-fog">
+                                            <div class="node-item node-fog" id="node-fog" data-node="fog" title="Click to inspect Fog Gateway">
+                                                <div class="node-indicator"></div>
+                                                <div class="node-content">
+                                                    <div class="node-title-row">
+                                                        <span class="node-name">Smart Home Fog Gateway</span>
+                                                        <span class="node-role-tag accent">fog-node</span>
+                                                    </div>
+                                                    <div class="node-specs-row">
+                                                        <span class="mono">MIPS: 2,800</span>
+                                                        <span class="spec-dot">&bull;</span>
+                                                        <span class="mono">RAM: 4 GB</span>
+                                                        <span class="spec-dot">&bull;</span>
+                                                        <span class="mono">DecisionEngine</span>
+                                                    </div>
+                                                </div>
+                                                <div class="node-metric-box">
+                                                    <span class="metric-label">Energy</span>
+                                                    <span class="metric-val mono" id="node-fog-energy">--</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- LAN Link SVG Connector -->
+                                        <div class="topo-link link-fog-mcu" id="link-fog-mcu">
+                                            <svg class="topo-link-svg" viewBox="0 0 10 60" preserveAspectRatio="none">
+                                                <line x1="5" y1="0" x2="5" y2="60" class="link-track-line fog-track"/>
+                                                <circle class="link-packet fog-packet pf1" cx="5" r="3"></circle>
+                                                <circle class="link-packet fog-packet pf2" cx="5" r="2.5"></circle>
+                                            </svg>
+                                            <div class="link-annotation">
+                                                <span class="link-label">LAN Interface</span>
+                                                <span class="link-val mono">2ms &bull; 100Mbps</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Level 2: Edge MCU -->
+                                        <div class="topo-tier tier-mcu">
+                                            <div class="node-item node-mcu" id="node-mcu" data-node="mcu" title="Click to inspect NodeMCU controller">
+                                                <div class="node-indicator"></div>
+                                                <div class="node-content">
+                                                    <div class="node-title-row">
+                                                        <span class="node-name">NodeMCU ESP8266</span>
+                                                        <span class="node-role-tag">nodemcu-controller</span>
+                                                    </div>
+                                                    <div class="node-specs-row">
+                                                        <span class="mono">MIPS: 80</span>
+                                                        <span class="spec-dot">&bull;</span>
+                                                        <span class="mono">RAM: 4 MB</span>
+                                                        <span class="spec-dot">&bull;</span>
+                                                        <span class="mono">VirtualSensor Hub</span>
+                                                    </div>
+                                                </div>
+                                                <div class="node-metric-box">
+                                                    <span class="metric-label">Energy</span>
+                                                    <span class="metric-val mono" id="node-mcu-energy">--</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Peripherals Bus & Nodes -->
+                                        <div class="peripherals-cluster">
+                                            <div class="periph-item periph-sensor" id="node-sensor" data-node="sensor" title="DHT11 Temperature & Humidity / LDR">
+                                                <div class="periph-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"/></svg>
+                                                </div>
+                                                <div class="periph-info">
+                                                    <div class="periph-name">DHT11 / LDR</div>
+                                                    <div class="periph-sub mono">Sensor Hub</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="periph-item periph-actuator" id="node-actuator-fan" data-node="fan" title="Smart Fan (80W)">
+                                                <div class="periph-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                                </div>
+                                                <div class="periph-info">
+                                                    <div class="periph-name">Smart Fan</div>
+                                                    <div class="periph-sub mono">80W &bull; <span id="lbl-fan-state">OFF</span></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="periph-item periph-actuator" id="node-actuator-led" data-node="led" title="Smart LED (10W)">
+                                                <div class="periph-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
+                                                </div>
+                                                <div class="periph-info">
+                                                    <div class="periph-name">Smart LED</div>
+                                                    <div class="periph-sub mono">10W &bull; <span id="lbl-led-state">OFF</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Actuator Duty Cycle Bars -->
+                                        <div class="actuator-monitoring-strip">
+                                            <div class="actuator-monitor-row">
+                                                <div class="am-label">
+                                                    <span class="am-dot fan"></span>
+                                                    <span>Fan Duty Cycle</span>
+                                                </div>
+                                                <div class="am-bar-track">
+                                                    <div class="am-bar-fill fan-bar" id="bar-fan" style="width: 0%;"></div>
+                                                </div>
+                                                <div class="am-pct mono" id="pct-fan">0.0%</div>
+                                            </div>
+
+                                            <div class="actuator-monitor-row">
+                                                <div class="am-label">
+                                                    <span class="am-dot led"></span>
+                                                    <span>LED Duty Cycle</span>
+                                                </div>
+                                                <div class="am-bar-track">
+                                                    <div class="am-bar-fill led-bar" id="bar-led" style="width: 0%;"></div>
+                                                </div>
+                                                <div class="am-pct mono" id="pct-led">0.0%</div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Live Telemetry Charts & Dataset Preview -->
+                        <div class="col-telemetry">
                             
-                            <div class="link-wrapper" id="link-cloud-fog">
-                                <svg class="link-svg" viewBox="0 0 8 50" preserveAspectRatio="none">
-                                    <line x1="4" y1="0" x2="4" y2="50" class="link-track"/>
-                                    <circle class="packet p1" cx="4" r="3"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0s"/></circle>
-                                    <circle class="packet p2" cx="4" r="2.5"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0.47s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0.47s"/></circle>
-                                    <circle class="packet p3" cx="4" r="2"><animate attributeName="cy" from="0" to="50" dur="1.4s" repeatCount="indefinite" begin="0.93s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.4s" repeatCount="indefinite" begin="0.93s"/></circle>
-                                </svg>
-                            </div>
-
-                            <!-- Fog Level -->
-                            <div class="topology-level level-1">
-                                <div class="node-card fog-node" id="node-fog">
-                                    <div class="node-dot"></div>
-                                    <div class="node-info">
-                                        <span class="node-title">Fog Node Gateway</span>
-                                        <span class="node-detail">fog-node (MIPS: 2,800)</span>
+                            <!-- Telemetry Chart Panel -->
+                            <div class="panel panel-telemetry">
+                                <div class="panel-header">
+                                    <div class="header-left">
+                                        <div class="panel-title-wrap">
+                                            <span class="panel-eyebrow">Real-Time Streams</span>
+                                            <h2 class="panel-title">Environmental Telemetry</h2>
+                                        </div>
                                     </div>
-                                    <div class="node-metric" id="node-fog-energy">--</div>
-                                </div>
-                            </div>
-
-                            <div class="link-wrapper" id="link-fog-mcu">
-                                <svg class="link-svg" viewBox="0 0 8 50" preserveAspectRatio="none">
-                                    <line x1="4" y1="0" x2="4" y2="50" class="link-track link-track-fog"/>
-                                    <circle class="packet packet-fog pf1" cx="4" r="3"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="0.2s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="0.2s"/></circle>
-                                    <circle class="packet packet-fog pf2" cx="4" r="2.5"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="0.73s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="0.73s"/></circle>
-                                    <circle class="packet packet-fog pf3" cx="4" r="2"><animate attributeName="cy" from="0" to="50" dur="1.6s" repeatCount="indefinite" begin="1.27s"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" repeatCount="indefinite" begin="1.27s"/></circle>
-                                </svg>
-                            </div>
-
-                            <!-- NodeMCU Level -->
-                            <div class="topology-level level-2">
-                                <div class="node-card mcu-node" id="node-mcu">
-                                    <div class="node-dot"></div>
-                                    <div class="node-info">
-                                        <span class="node-title">NodeMCU ESP8266</span>
-                                        <span class="node-detail">nodemcu-controller (MIPS: 80)</span>
+                                    <div class="header-right">
+                                        <div class="chart-legend-wrap">
+                                            <span class="legend-item"><span class="legend-dot color-temp"></span>Temp (°C)</span>
+                                            <span class="legend-item"><span class="legend-dot color-light"></span>Light (LDR)</span>
+                                        </div>
+                                        <button type="button" class="btn btn-ghost btn-sm" id="btn-expand-telemetry" title="Open Full Analytics Workspace">
+                                            <span>Full View</span>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                                        </button>
                                     </div>
-                                    <div class="node-metric" id="node-mcu-energy">--</div>
                                 </div>
-                            </div>
 
-                            <!-- Devices Attached to NodeMCU -->
-                            <div class="peripherals-row">
-                                <div class="peripheral-node sensor-node" id="node-sensor">
-                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M12 9v4M12 17h.01M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"/>
-                                    </svg>
-                                    <span>DHT11/LDR</span>
-                                </div>
-                                <div class="peripheral-node actuator-node" id="node-actuator-fan">
-                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                                    </svg>
-                                    <span>Smart Fan</span>
-                                </div>
-                                <div class="peripheral-node actuator-node" id="node-actuator-led">
-                                    <svg class="periph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/>
-                                        <path d="M9 18h6M10 22h4"/>
-                                    </svg>
-                                    <span>Smart LED</span>
-                                </div>
-                            </div>
-
-                            <!-- ACTUATOR PERCENTAGE BARS & ANOMALY ALERT -->
-                            <div class="actuator-stats" id="actuator-stats">
-                                <div class="actuator-stat-row">
-                                    <span class="actuator-stat-label">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                                        Fan ON
-                                    </span>
-                                    <div class="actuator-bar-track">
-                                        <div class="actuator-bar-fill fan-fill" id="bar-fan" style="width:0%"></div>
+                                <div class="panel-body chart-body-wrap">
+                                    <!-- Idle overlay when no telemetry is loaded -->
+                                    <div class="chart-idle-overlay" id="chart-idle-overlay">
+                                        <div class="idle-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                        </div>
+                                        <div class="idle-title">Simulation Idle</div>
+                                        <div class="idle-text">No active telemetry stream detected. Run a simulation to start streaming sensor readings and actuator decisions.</div>
+                                        <button type="button" class="btn btn-primary btn-sm" id="btn-chart-run">Run Simulation</button>
                                     </div>
-                                    <span class="actuator-stat-pct" id="pct-fan">0%</span>
-                                </div>
-                                <div class="actuator-stat-row">
-                                    <span class="actuator-stat-label">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>
-                                        LED ON
-                                    </span>
-                                    <div class="actuator-bar-track">
-                                        <div class="actuator-bar-fill led-fill" id="bar-led" style="width:0%"></div>
+
+                                    <div class="chart-canvas-container">
+                                        <canvas id="telemetryChart"></canvas>
                                     </div>
-                                    <span class="actuator-stat-pct" id="pct-led">0%</span>
                                 </div>
-                                <div class="anomaly-alert" id="anomaly-alert" style="display:none">
-                                    <span class="anomaly-icon">⚠</span>
-                                    <span id="anomaly-alert-text">Anomaly Detected — Sensor reading outside safe bounds</span>
+                            </div>
+
+                            <!-- Quick Mini Dataset Preview -->
+                            <div class="panel panel-quick-dataset">
+                                <div class="panel-header">
+                                    <div class="header-left">
+                                        <div class="panel-title-wrap">
+                                            <span class="panel-eyebrow">Log Dump</span>
+                                            <h2 class="panel-title">Dataset Stream (<span class="mono" id="overview-dataset-count">0 rows</span>)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="header-right">
+                                        <a href="#dataset" class="btn btn-ghost btn-sm">Full Data Explorer &rarr;</a>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body mini-table-wrap">
+                                    <table class="data-table compact-table" id="mini-dataset-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Timestamp</th>
+                                                <th>Temp</th>
+                                                <th>Humidity</th>
+                                                <th>Light</th>
+                                                <th>Fan</th>
+                                                <th>LED</th>
+                                                <th>Decision</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="mini-dataset-tbody">
+                                            <tr>
+                                                <td colspan="7" class="empty-table">No simulation data loaded. Click 'Run Simulation' to execute iFogSim2.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- SIMULATION CONFIG PANEL -->
-                <div class="dashboard-panel panel-config">
-                    <div class="panel-header">
-                        <h2>Simulation Config & Overrides</h2>
-                        <span class="badge">config_v1.4</span>
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 3: DEDICATED SIMULATION PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-simulation" id="view-simulation" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Simulation Control Workbench</h1>
+                            <p class="page-subtitle">Configure environmental parameters, adjust MIPS ratings, execute runs, and monitor the DualStream event terminal.</p>
+                        </div>
+                        <div class="page-actions">
+                            <button type="button" class="btn btn-danger" id="btn-sim-stop" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                                <span>Abort Execution</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-lg" id="btn-sim-run">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span>Run iFogSim2 Simulation</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="panel-body config-body">
-                        <div class="config-grid">
-                            <div class="config-field">
-                                <label for="opt-actuator-mode">Actuator Control Mode</label>
-                                <div class="select-wrapper">
-                                    <select id="opt-actuator-mode" class="config-select">
-                                        <option value="auto">Auto (Fog Engine ML)</option>
-                                        <option value="fan-on">Force Fan ON (Override)</option>
-                                        <option value="led-on">Force LED ON (Override)</option>
-                                        <option value="both-off">Force Both OFF (Override)</option>
-                                    </select>
+
+                    <div class="simulation-workbench-grid">
+                        
+                        <!-- Left Panel: Parameters & Configuration -->
+                        <div class="sim-config-col">
+                            
+                            <!-- Workload & Environment Config -->
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">Workload &amp; Actuator Policy</h3>
+                                    <span class="badge">Rule Policies</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="form-group">
+                                        <label class="form-label" for="sim-opt-actuator-mode">
+                                            Actuator Decision Mode
+                                            <span class="form-hint">Governs whether Fog ML classifies rules or forces actuator states.</span>
+                                        </label>
+                                        <select id="sim-opt-actuator-mode" class="form-select">
+                                            <option value="auto">Auto (DecisionEngine.java Classifier)</option>
+                                            <option value="fan-on">Force Fan ON (Cooling Stress Override)</option>
+                                            <option value="led-on">Force LED ON (Lighting Stress Override)</option>
+                                            <option value="both-off">Force Both OFF (Greenhouse Idle Mode)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="sim-opt-anomaly-chance">
+                                            Synthetic Anomaly Injection Rate
+                                            <span class="form-hint">Probability of extreme sensor spikes (fire drafts or sensor blockages).</span>
+                                        </label>
+                                        <select id="sim-opt-anomaly-chance" class="form-select">
+                                            <option value="0.02">2% (Standard Research Baseline)</option>
+                                            <option value="0.05">5% (Moderate Noise &amp; Drift)</option>
+                                            <option value="0.10">10% (Extreme Stress Testing)</option>
+                                            <option value="0.00">0% (Pure Diurnal Deterministic)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Sensor Interval</label>
+                                            <input type="text" class="form-input mono" value="5.0 seconds" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Simulation Time</label>
+                                            <input type="text" class="form-input mono" value="50,005 seconds" readonly>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="config-field">
-                                <label for="opt-anomaly-chance">Anomaly Injection Rate</label>
-                                <div class="select-wrapper">
-                                    <select id="opt-anomaly-chance" class="config-select">
-                                        <option value="0.02">2% (Default / Stable)</option>
-                                        <option value="0.05">5% (High Noise)</option>
-                                        <option value="0.10">10% (Extreme Stress)</option>
-                                        <option value="0.00">0% (Pure Automations)</option>
-                                    </select>
+
+                            <!-- Hardware Configuration Ratings (Read-only / Tuned) -->
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">Topology Hardware Architecture</h3>
+                                    <span class="badge">iFogSim2 Spec</span>
                                 </div>
+                                <div class="panel-body">
+                                    <div class="hw-node-spec">
+                                        <div class="hw-header">
+                                            <span class="hw-name">Tier 0: Cloud Server</span>
+                                            <span class="hw-id mono">cloud</span>
+                                        </div>
+                                        <div class="hw-chips">
+                                            <span class="hw-chip">MIPS: 44,800</span>
+                                            <span class="hw-chip">RAM: 40,000 MB</span>
+                                            <span class="hw-chip">WAN: 40ms</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="hw-node-spec">
+                                        <div class="hw-header">
+                                            <span class="hw-name">Tier 1: Fog Gateway</span>
+                                            <span class="hw-id mono">fog-node</span>
+                                        </div>
+                                        <div class="hw-chips">
+                                            <span class="hw-chip">MIPS: 2,800</span>
+                                            <span class="hw-chip">RAM: 4,000 MB</span>
+                                            <span class="hw-chip">LAN: 2ms</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="hw-node-spec">
+                                        <div class="hw-header">
+                                            <span class="hw-name">Tier 2: NodeMCU ESP8266</span>
+                                            <span class="hw-id mono">nodemcu-controller</span>
+                                        </div>
+                                        <div class="hw-chips">
+                                            <span class="hw-chip">MIPS: 80</span>
+                                            <span class="hw-chip">RAM: 4 MB</span>
+                                            <span class="hw-chip">Bus: &lt; 0.1ms</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Right Panel: Execution Progress & Live Terminal Stream -->
+                        <div class="sim-terminal-col">
+                            
+                            <!-- Live Progress Card -->
+                            <div class="panel panel-sim-progress">
+                                <div class="panel-header">
+                                    <h3 class="panel-title">Simulation Execution Status</h3>
+                                    <span class="badge" id="sim-run-status-badge">STANDBY</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="sim-progress-block">
+                                        <div class="sp-meta">
+                                            <span class="sp-step" id="sim-stage-label">Awaiting execution trigger...</span>
+                                            <span class="sp-count mono" id="sim-row-count">0 / 10,001 Tuples</span>
+                                        </div>
+                                        <div class="sp-track">
+                                            <div class="sp-fill" id="sim-progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="sim-stats-grid">
+                                        <div class="sim-stat-box">
+                                            <span class="sb-label">Elapsed Real Time</span>
+                                            <span class="sb-val mono" id="sim-stat-realtime">-- ms</span>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span class="sb-label">Simulated Time</span>
+                                            <span class="sb-val mono" id="sim-stat-simtime">0.0 s</span>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span class="sb-label">Throughput</span>
+                                            <span class="sb-val mono" id="sim-stat-throughput">-- pkts/s</span>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span class="sb-label">Anomalies Detected</span>
+                                            <span class="sb-val mono" id="sim-stat-anomalies">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terminal Console -->
+                            <div class="panel panel-terminal">
+                                <div class="panel-header">
+                                    <div class="header-left">
+                                        <h3 class="panel-title">DualStream Event Console</h3>
+                                        <span class="mono sub-code">SimulationLog.txt</span>
+                                    </div>
+                                    <div class="header-right">
+                                        <div class="terminal-filter-tabs">
+                                            <button type="button" class="t-filter-btn active" data-filter="all">All</button>
+                                            <button type="button" class="t-filter-btn" data-filter="system">System</button>
+                                            <button type="button" class="t-filter-btn" data-filter="stdout">Console</button>
+                                            <button type="button" class="t-filter-btn" data-filter="stderr">Compiler</button>
+                                        </div>
+                                        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-terminal">Clear</button>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body terminal-body-wrap" id="sim-terminal-output">
+                                    <div class="terminal-line system-line">[System] Homestead Fog Engine initialized.</div>
+                                    <div class="terminal-line system-line">[System] Ready to run simulation. Click 'Run iFogSim2 Simulation' to execute topology compiler.</div>
+                                </div>
+
+                                <div class="terminal-footer">
+                                    <span class="terminal-status-info">DualStream logging: standard output is piped simultaneously to browser memory and project root.</span>
+                                    <label class="terminal-autoscroll">
+                                        <input type="checkbox" id="chk-autoscroll" checked>
+                                        <span>Auto-scroll</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 4: DEDICATED TOPOLOGY PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-topology" id="view-topology" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Topology Visualizer &amp; Inspector</h1>
+                            <p class="page-subtitle">Interactive hierarchical architecture view. Inspect node MIPS, assigned application modules, link latencies, and real-time queues.</p>
+                        </div>
+                        <div class="page-actions">
+                            <div class="view-mode-toggle">
+                                <button type="button" class="btn btn-secondary btn-sm active" id="btn-topo-2d">2D Blueprint</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-topo-3d">3D Depth View</button>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- TERMINAL PANEL -->
-                <div class="dashboard-panel panel-terminal">
-                    <div class="panel-header">
-                        <h2>Simulation Console Output</h2>
-                        <button id="btn-clear-console" class="btn-text">Clear</button>
-                    </div>
-                    <div class="panel-body terminal-body" id="terminal-output">
-                        <div class="terminal-line system-line">> Ready to run smart home simulation. Click 'Run Simulation' to execute the iFogSim2 topology compiler.</div>
-                    </div>
-                </div>
-            </div>
+                    <div class="topology-fullscreen-layout">
+                        
+                        <!-- Main Topology Canvas -->
+                        <div class="topo-canvas-panel" id="topo-canvas-panel">
+                            <div class="canvas-controls-overlay">
+                                <span class="canvas-tag">INTERACTIVE TOPOLOGY CANVAS</span>
+                                <span class="canvas-instruction">Click any node or link to open the hardware inspector</span>
+                            </div>
 
-            <!-- RIGHT COLUMN: CHARTS & STATS -->
-            <div class="grid-col col-right">
-                <!-- CHART PANEL -->
-                <div class="dashboard-panel panel-chart">
-                    <div class="panel-header">
-                        <h2>Live Telemetry Charts</h2>
-                        <div class="chart-controls">
-                            <span class="chart-legend"><span class="legend-color color-temp"></span>Temp</span>
-                            <span class="chart-legend"><span class="legend-color color-light"></span>Light</span>
-                            <span class="chart-legend"><span class="legend-color color-fan"></span>Fan</span>
-                            <span class="chart-legend"><span class="legend-color color-led"></span>LED</span>
+                            <div class="full-topology-container" id="full-topology-container">
+                                
+                                <!-- Cloud Level -->
+                                <div class="full-tier tier-0">
+                                    <div class="full-node-card node-cloud" id="ft-node-cloud" data-node="cloud">
+                                        <div class="f-indicator"></div>
+                                        <div class="f-details">
+                                            <div class="f-title">Cloud Datacenter (<span class="mono">cloud</span>)</div>
+                                            <div class="f-specs mono">MIPS: 44,800 &bull; RAM: 40,000 MB &bull; Cost: $7,450.30</div>
+                                            <div class="f-modules">Assigned Module: <span class="mono tag">cloud_history_module</span></div>
+                                        </div>
+                                        <div class="f-stats">
+                                            <div class="f-stat-item">
+                                                <span class="fs-lbl">Energy</span>
+                                                <span class="fs-val mono" id="ft-cloud-energy">65.01 MJ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- WAN Link -->
+                                <div class="full-link link-wan">
+                                    <div class="link-pipe">
+                                        <div class="pipe-track"></div>
+                                        <div class="pipe-packet packet-up-loop"></div>
+                                    </div>
+                                    <div class="link-specs-bubble" data-link="wan">
+                                        <span class="ls-name">WAN Backhaul Link</span>
+                                        <span class="ls-detail mono">Latency: 40.0 ms &bull; Bandwidth: 100.0 Mbps</span>
+                                        <span class="ls-tuple mono">Tuple: CLOUD_SUMMARY_DATA (5 MI)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Fog Gateway Level -->
+                                <div class="full-tier tier-1">
+                                    <div class="full-node-card node-fog highlight-node" id="ft-node-fog" data-node="fog">
+                                        <div class="f-indicator"></div>
+                                        <div class="f-details">
+                                            <div class="f-title">Smart Home Fog Gateway (<span class="mono">fog-node</span>)</div>
+                                            <div class="f-specs mono">MIPS: 2,800 &bull; RAM: 4,000 MB &bull; SmartHomeFogDevice</div>
+                                            <div class="f-modules">Assigned Module: <span class="mono tag">fog_processor_module</span> (DecisionEngine)</div>
+                                        </div>
+                                        <div class="f-stats">
+                                            <div class="f-stat-item">
+                                                <span class="fs-lbl">Avg Latency</span>
+                                                <span class="fs-val mono accent" id="ft-fog-latency">5.67 ms</span>
+                                            </div>
+                                            <div class="f-stat-item">
+                                                <span class="fs-lbl">Energy</span>
+                                                <span class="fs-val mono" id="ft-fog-energy">4.21 MJ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LAN Link -->
+                                <div class="full-link link-lan">
+                                    <div class="link-pipe">
+                                        <div class="pipe-track lan-track"></div>
+                                        <div class="pipe-packet packet-down-loop"></div>
+                                    </div>
+                                    <div class="link-specs-bubble" data-link="lan">
+                                        <span class="ls-name">LAN Local Network</span>
+                                        <span class="ls-detail mono">Latency: 2.0 ms &bull; Bandwidth: 100.0 Mbps</span>
+                                        <span class="ls-tuple mono">Tuples: AGGREGATED_SENSOR_DATA &bull; FAN/LED_COMMAND</span>
+                                    </div>
+                                </div>
+
+                                <!-- Edge MCU Level -->
+                                <div class="full-tier tier-2">
+                                    <div class="full-node-card node-mcu" id="ft-node-mcu" data-node="mcu">
+                                        <div class="f-indicator"></div>
+                                        <div class="f-details">
+                                            <div class="f-title">NodeMCU ESP8266 (<span class="mono">nodemcu-controller</span>)</div>
+                                            <div class="f-specs mono">MIPS: 80 &bull; RAM: 4 MB &bull; GPIO / I2C Bus</div>
+                                            <div class="f-modules">Assigned Module: <span class="mono tag">controller_module</span></div>
+                                        </div>
+                                        <div class="f-stats">
+                                            <div class="f-stat-item">
+                                                <span class="fs-lbl">Energy</span>
+                                                <span class="fs-val mono" id="ft-mcu-energy">25.0 kJ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Peripherals Tier -->
+                                <div class="full-peripherals-tier">
+                                    <div class="fp-card" id="ft-sensor-temp" data-node="temp-sensor">
+                                        <div class="fp-title">DHT11 Temp Sensor</div>
+                                        <div class="fp-sub mono">Diurnal Model (22-38°C)</div>
+                                    </div>
+                                    <div class="fp-card" id="ft-sensor-light" data-node="light-sensor">
+                                        <div class="fp-title">LDR Light Sensor</div>
+                                        <div class="fp-sub mono">0 - 1023 Lux Range</div>
+                                    </div>
+                                    <div class="fp-card" id="ft-actuator-fan" data-node="fan">
+                                        <div class="fp-title">Smart Fan Actuator</div>
+                                        <div class="fp-sub mono">80W &bull; Threshold &gt; 30°C</div>
+                                    </div>
+                                    <div class="fp-card" id="ft-actuator-led" data-node="led">
+                                        <div class="fp-title">Smart LED Actuator</div>
+                                        <div class="fp-sub mono">10W &bull; Threshold &lt; 400 LDR</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Right Drawer: Node / Link Inspector -->
+                        <div class="topo-inspector-panel" id="topo-inspector-panel">
+                            <div class="inspector-header">
+                                <span class="inspector-title">Hardware Inspector</span>
+                                <span class="inspector-id mono" id="insp-id">fog-node</span>
+                            </div>
+
+                            <div class="inspector-body" id="inspector-body">
+                                <div class="insp-section">
+                                    <div class="insp-sec-title">Operational Status</div>
+                                    <div class="insp-meta-grid">
+                                        <div class="insp-meta-item">
+                                            <span class="im-lbl">Status</span>
+                                            <span class="im-val status-badge-inline" id="insp-status">ONLINE (ACTIVE)</span>
+                                        </div>
+                                        <div class="insp-meta-item">
+                                            <span class="im-lbl">Entity Type</span>
+                                            <span class="im-val mono" id="insp-type">SmartHomeFogDevice</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="insp-section">
+                                    <div class="insp-sec-title">Computational Capacity</div>
+                                    <div class="insp-resource-meter">
+                                        <div class="meter-head">
+                                            <span>MIPS Allocation</span>
+                                            <span class="mono" id="insp-mips">2,800 MIPS</span>
+                                        </div>
+                                        <div class="meter-bar"><div class="meter-fill" style="width: 65%;"></div></div>
+                                    </div>
+                                    <div class="insp-resource-meter">
+                                        <div class="meter-head">
+                                            <span>Memory Allocation (RAM)</span>
+                                            <span class="mono" id="insp-ram">4,000 MB</span>
+                                        </div>
+                                        <div class="meter-bar"><div class="meter-fill" style="width: 42%;"></div></div>
+                                    </div>
+                                </div>
+
+                                <div class="insp-section">
+                                    <div class="insp-sec-title">Energy Consumption Profile</div>
+                                    <div class="insp-kv-list">
+                                        <div class="insp-kv">
+                                            <span>Idle Power Rating</span>
+                                            <span class="mono">83.43 W</span>
+                                        </div>
+                                        <div class="insp-kv">
+                                            <span>Peak Busy Power</span>
+                                            <span class="mono">107.34 W</span>
+                                        </div>
+                                        <div class="insp-kv">
+                                            <span>Cumulative Energy</span>
+                                            <span class="mono accent" id="insp-energy">4,209,737 J (4.21 MJ)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="insp-section">
+                                    <div class="insp-sec-title">Deployed Application Modules</div>
+                                    <div class="insp-module-card">
+                                        <div class="mod-title mono" id="insp-module-name">fog_processor_module</div>
+                                        <div class="mod-desc" id="insp-module-desc">Executes DecisionEngine.java classification logic. Consumes AGGREGATED_SENSOR_DATA tuples and dispatches FAN/LED actuator commands at 1.0 fractional selectivity.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 5: DEDICATED TELEMETRY PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-telemetry" id="view-telemetry" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Telemetry &amp; Latency Analytics Workspace</h1>
+                            <p class="page-subtitle">Multi-channel sensor time-series, diurnal trend analysis, latency comparison, and power draw distributions.</p>
+                        </div>
+                        <div class="page-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-export-charts">Export Report</button>
                         </div>
                     </div>
-                    <div class="panel-body chart-body">
-                        <div class="chart-wrapper">
-                            <canvas id="telemetryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- DATASET PANEL -->
-                <div class="dashboard-panel panel-dataset">
-                    <div class="panel-header">
-                        <h2>SmartHomeDataset.csv Explorer</h2>
-                        <div class="dataset-controls">
-                            <input type="text" id="dataset-search" placeholder="Filter rows...">
-                            <span id="dataset-count" class="dataset-count">0 rows</span>
+                    <!-- Telemetry Metrics Summary Strip -->
+                    <div class="telemetry-stats-strip">
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Avg Temperature</span>
+                            <span class="ts-val mono" id="tstat-temp">26.03 °C</span>
+                        </div>
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Avg Humidity</span>
+                            <span class="ts-val mono" id="tstat-humid">70.83 %</span>
+                        </div>
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Avg Light</span>
+                            <span class="ts-val mono" id="tstat-light">437 LDR</span>
+                        </div>
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Fog Latency</span>
+                            <span class="ts-val mono accent" id="tstat-fog-lat">5.67 ms</span>
+                        </div>
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Cloud Latency</span>
+                            <span class="ts-val mono" id="tstat-cloud-lat">41.00 ms</span>
+                        </div>
+                        <div class="t-stat-pill">
+                            <span class="ts-lbl">Latency Reduction</span>
+                            <span class="ts-val mono success" id="tstat-speedup">86.2%</span>
                         </div>
                     </div>
-                    <div class="panel-body dataset-body">
-                        <div class="table-wrapper">
-                            <table id="dataset-table">
+
+                    <div class="telemetry-charts-grid">
+                        
+                        <!-- Chart 1: Temperature & Humidity Diurnal Curve -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="header-left">
+                                    <h3 class="panel-title">Environmental Curves (Temp &amp; Humidity)</h3>
+                                    <span class="form-hint">Diurnal sinusoidal model with occupancy perturbations</span>
+                                </div>
+                                <div class="header-right">
+                                    <div class="chart-legend-wrap">
+                                        <span class="legend-item"><span class="legend-dot color-temp"></span>Temp (°C)</span>
+                                        <span class="legend-item"><span class="legend-dot color-humid"></span>Humidity (%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body analytics-chart-box">
+                                <canvas id="chart-temp-humid"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Fog Latency vs Cloud Latency -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="header-left">
+                                    <h3 class="panel-title">Latency Comparison (Fog vs. Cloud)</h3>
+                                    <span class="form-hint">Illustrates ~86% round-trip latency elimination via fog computing</span>
+                                </div>
+                                <div class="header-right">
+                                    <div class="chart-legend-wrap">
+                                        <span class="legend-item"><span class="legend-dot color-fog"></span>Fog Gateway (~5.7ms)</span>
+                                        <span class="legend-item"><span class="legend-dot color-cloud"></span>Cloud WAN (~41ms)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body analytics-chart-box">
+                                <canvas id="chart-latency-compare"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: Ambient Light Intensity & LED Activation -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="header-left">
+                                    <h3 class="panel-title">Ambient Light (LDR) &amp; Automated LED Actuation</h3>
+                                    <span class="form-hint">Trigger threshold set to 400 LDR units</span>
+                                </div>
+                                <div class="header-right">
+                                    <div class="chart-legend-wrap">
+                                        <span class="legend-item"><span class="legend-dot color-light"></span>Light (0-1023)</span>
+                                        <span class="legend-item"><span class="legend-dot color-led"></span>LED Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body analytics-chart-box">
+                                <canvas id="chart-light-actuation"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 4: Instantaneous Power Draw & Energy Profiling -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="header-left">
+                                    <h3 class="panel-title">Instantaneous System Power Draw</h3>
+                                    <span class="form-hint">Dynamic composite Watts (Base 5W + Fan 80W + LED 10W)</span>
+                                </div>
+                                <div class="header-right">
+                                    <div class="chart-legend-wrap">
+                                        <span class="legend-item"><span class="legend-dot color-power"></span>Power (W)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body analytics-chart-box">
+                                <canvas id="chart-power-profile"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 6: DEDICATED DATASET PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-dataset" id="view-dataset" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">SmartHomeDataset.csv Explorer</h1>
+                            <p class="page-subtitle">Inspect, filter, and export the primary machine learning training dataset compiled during simulation execution.</p>
+                        </div>
+                        <div class="page-actions">
+                            <a href="/api/export-csv" class="btn btn-secondary btn-sm" id="btn-export-csv" download>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Export CSV</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Dataset Filter & Control Toolbar -->
+                    <div class="dataset-toolbar-card">
+                        <div class="toolbar-left">
+                            <div class="search-input-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" id="dataset-full-search" placeholder="Search rows by timestamp, decision, value...">
+                            </div>
+
+                            <div class="filter-dropdown-wrap">
+                                <select id="filter-anomaly-select" class="compact-select">
+                                    <option value="all">Anomalies: All</option>
+                                    <option value="true">Anomalies Only</option>
+                                    <option value="false">Normal Only</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-dropdown-wrap">
+                                <select id="filter-occupancy-select" class="compact-select">
+                                    <option value="all">Occupancy: All</option>
+                                    <option value="1">Occupied (1)</option>
+                                    <option value="0">Unoccupied (0)</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-dropdown-wrap">
+                                <select id="filter-actuator-select" class="compact-select">
+                                    <option value="all">Actuators: All States</option>
+                                    <option value="fan-on">Fan Active</option>
+                                    <option value="led-on">LED Active</option>
+                                    <option value="both-on">Both Active</option>
+                                    <option value="both-off">Both Off</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="toolbar-right">
+                            <div class="dataset-meta-badge">
+                                <span class="meta-label">Displaying:</span>
+                                <span class="meta-val mono" id="dataset-filtered-count">0 of 0 rows</span>
+                            </div>
+
+                            <div class="rows-per-page-wrap">
+                                <label for="select-page-size">Page Size:</label>
+                                <select id="select-page-size" class="compact-select">
+                                    <option value="20">20 rows</option>
+                                    <option value="50">50 rows</option>
+                                    <option value="100">100 rows</option>
+                                    <option value="250">250 rows</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dataset Table -->
+                    <div class="panel panel-full-dataset">
+                        <div class="panel-body dataset-table-wrap">
+                            <table class="data-table full-grid-table" id="dataset-full-table">
                                 <thead>
                                     <tr>
-                                        <th>Sim Time</th>
-                                        <th>Temp (°C)</th>
-                                        <th>Humidity (%)</th>
-                                        <th>Light (LDR)</th>
-                                        <th>Fan</th>
-                                        <th>LED</th>
-                                        <th>Occupancy</th>
-                                        <th>Decision Label</th>
+                                        <th data-sort="Timestamp">Timestamp <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="Temperature">Temp (°C) <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="Humidity">Humidity (%) <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="LightIntensity">Light (LDR) <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="FanStatus">Fan <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="LEDStatus">LED <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="Occupancy">Occupancy <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="Decision">Decision Label <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="FogProcessingTime(ms)">Fog Latency <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="CloudLatency(ms)">Cloud Latency <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="EnergyConsumption(W)">Power (W) <span class="sort-icon">&updownarrow;</span></th>
+                                        <th data-sort="IsAnomaly">Anomaly <span class="sort-icon">&updownarrow;</span></th>
                                     </tr>
                                 </thead>
-                                <tbody id="dataset-tbody">
+                                <tbody id="dataset-full-tbody">
                                     <tr>
-                                        <td colspan="8" class="empty-table">No data available. Run the simulation to compile dataset.</td>
+                                        <td colspan="12" class="empty-table">Dataset empty. Execute the simulation to generate SmartHomeDataset.csv.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <!-- PAGINATION -->
-                        <div class="pagination">
-                            <button id="btn-prev" class="btn btn-secondary btn-small" disabled>Previous</button>
-                            <span id="page-num">Page 1 of 1</span>
-                            <button id="btn-next" class="btn btn-secondary btn-small" disabled>Next</button>
+
+                        <!-- Pagination Footer -->
+                        <div class="dataset-pagination-footer">
+                            <div class="pagination-info">
+                                <span id="full-page-info">Page 1 of 1</span>
+                            </div>
+                            <div class="pagination-buttons">
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-first-page" disabled>First</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-full-prev" disabled>&larr; Previous</button>
+                                <span class="page-jump-wrap">
+                                    <span>Page</span>
+                                    <input type="number" id="input-page-jump" min="1" max="1" value="1" class="page-input mono">
+                                </span>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-full-next" disabled>Next &rarr;</button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-last-page" disabled>Last</button>
+                            </div>
                         </div>
                     </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 7: DEDICATED EXPERIMENTS PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-experiments" id="view-experiments" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Simulation Experiments &amp; Benchmarks</h1>
+                            <p class="page-subtitle">Track simulation runs, compare override configurations, assess energy variations, and inspect latency deltas.</p>
+                        </div>
+                        <div class="page-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-compare-runs" disabled>
+                                <span>Compare Selected (0)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Drawer / Box (When 2 are selected) -->
+                    <div class="experiment-comparison-card" id="exp-comparison-card" style="display:none;">
+                        <div class="comparison-header">
+                            <h3 class="comp-title">Run Comparison: <span id="comp-run-a-name">EXP-001</span> vs. <span id="comp-run-b-name">EXP-002</span></h3>
+                            <button type="button" class="btn-text" id="btn-close-comparison">&times; Close</button>
+                        </div>
+                        <div class="comparison-grid" id="comparison-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Experiments History Table -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Experiment Run History</h3>
+                            <span class="mono sub-code">experiments.json</span>
+                        </div>
+                        <div class="panel-body">
+                            <table class="data-table" id="experiments-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="chk-select-all-exp"></th>
+                                        <th>Run ID</th>
+                                        <th>Timestamp</th>
+                                        <th>Configuration</th>
+                                        <th>Execution Time</th>
+                                        <th>Tuples</th>
+                                        <th>Avg Fog Latency</th>
+                                        <th>Avg Power</th>
+                                        <th>Fog Energy</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="experiments-tbody">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 8: DEDICATED DOCUMENTATION PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-documentation" id="view-documentation" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Research Documentation &amp; Specifications</h1>
+                            <p class="page-subtitle">Theoretical models, mathematical equations, selectivity rules, and architecture references for Homestead Fog Engine.</p>
+                        </div>
+                    </div>
+
+                    <div class="docs-layout">
+                        <nav class="docs-toc">
+                            <div class="toc-title">Table of Contents</div>
+                            <a href="#doc-overview" class="toc-link active">1. Overview &amp; Rationale</a>
+                            <a href="#doc-topology" class="toc-link">2. Hierarchical Topology</a>
+                            <a href="#doc-sensor-models" class="toc-link">3. Mathematical Sensor Models</a>
+                            <a href="#doc-decision-engine" class="toc-link">4. Decision Engine Logic</a>
+                            <a href="#doc-tuple-flow" class="toc-link">5. iFogSim2 Application Graph</a>
+                            <a href="#doc-dataset-spec" class="toc-link">6. Dataset Schema</a>
+                        </nav>
+
+                        <div class="docs-content">
+                            
+                            <article class="doc-article" id="doc-overview">
+                                <h2 class="doc-h2">1. Simulation vs. Hardware Prototyping</h2>
+                                <p>
+                                    Developing a software simulation (iFogSim2/CloudSim) in parallel with physical microcontroller setups (NodeMCU ESP8266) is standard scientific practice in edge computing research. Software simulation functions as a <strong>computational wind tunnel</strong>, allowing evaluation of scale, network latency jitter, and energy footprints with mathematical precision and zero hardware cost.
+                                </p>
+                            </article>
+
+                            <article class="doc-article" id="doc-topology">
+                                <h2 class="doc-h2">2. Hierarchical System Topology</h2>
+                                <p>The system models a three-tier hierarchical infrastructure:</p>
+                                <ul>
+                                    <li><strong>Tier 0 — Centralized Cloud Datacenter (<span class="mono">cloud</span>)</strong>: High-performance batch analytics (44,800 MIPS, 40,000 MB RAM). Connected via a 40ms WAN link (100 Mbps).</li>
+                                    <li><strong>Tier 1 — Local Fog Gateway (<span class="mono">fog-node</span>)</strong>: Intermediate gateway (2,800 MIPS, 4,000 MB RAM) running real-time decision rules and streaming telemetry logs. Connected to the controller via a 2ms local LAN link (100 Mbps).</li>
+                                    <li><strong>Tier 2 — NodeMCU Controller (<span class="mono">nodemcu-controller</span>)</strong>: Low-power edge microcontroller (80 MIPS, 4 MB RAM) coordinating sensor sampling and driving actuators.</li>
+                                </ul>
+                            </article>
+
+                            <article class="doc-article" id="doc-sensor-models">
+                                <h2 class="doc-h2">3. Mathematical Sensor Models</h2>
+                                <p>Sensors emit readings every 5 simulated seconds (<span class="mono">SENSOR_INTERVAL = 5.0</span>) according to deterministic diurnal formulas with Gaussian noise:</p>
+                                
+                                <div class="math-block">
+                                    <div class="math-title">DHT11 Temperature Model:</div>
+                                    <code>T(t) = 30.0 + 8.0 &times; sin( 2&pi; &times; (t - 32400) / 86400 ) + Noise + Occupancy_Heat</code>
+                                    <p class="math-sub">Peaks around 3:00 PM; reaches minimum at 3:00 AM. Occupancy adds +1.0°C human body heat.</p>
+                                </div>
+
+                                <div class="math-block">
+                                    <div class="math-title">DHT11 Humidity Model:</div>
+                                    <code>H(t) = 65.0 - 15.0 &times; sin( 2&pi; &times; (t - 32400) / 86400 ) + Noise + Occupancy_Moisture</code>
+                                    <p class="math-sub">Inversely proportional to outdoor temperature. Occupancy adds +5.0% domestic activity moisture.</p>
+                                </div>
+
+                                <div class="math-block">
+                                    <div class="math-title">LDR Light Intensity Model:</div>
+                                    <code>L(t) = Range 0 (complete darkness) to 1023 (full sun). Daytime peaks at 12:30 PM. Nighttime defaults to 40 - 80 units.</code>
+                                </div>
+                            </article>
+
+                            <article class="doc-article" id="doc-decision-engine">
+                                <h2 class="doc-h2">4. Decision Engine Classification Logic</h2>
+                                <p>The Fog Node evaluates incoming environmental telemetry using strict classification rules in <span class="mono">DecisionEngine.java</span>:</p>
+                                
+                                <table class="specs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rule Condition</th>
+                                            <th>Actuator State</th>
+                                            <th>Classification Label</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Occupancy == 0</td>
+                                            <td>Fan: OFF, LED: OFF</td>
+                                            <td class="mono">FAN_OFF_LED_OFF</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Occupied &amp; Temp &gt; 30.0°C &amp; Light &lt; 400 LDR</td>
+                                            <td>Fan: ON, LED: ON</td>
+                                            <td class="mono">FAN_ON_LED_ON</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Occupied &amp; Temp &gt; 30.0°C &amp; Light &ge; 400 LDR</td>
+                                            <td>Fan: ON, LED: OFF</td>
+                                            <td class="mono">FAN_ON_LED_OFF</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Occupied &amp; Temp &le; 30.0°C &amp; Light &lt; 400 LDR</td>
+                                            <td>Fan: OFF, LED: ON</td>
+                                            <td class="mono">FAN_OFF_LED_ON</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </article>
+
+                            <article class="doc-article" id="doc-tuple-flow">
+                                <h2 class="doc-h2">5. iFogSim2 Application Graph &amp; Tuples</h2>
+                                <p>The application graph operates at 1.0 fractional selectivity:</p>
+                                <ul>
+                                    <li><span class="mono">AGGREGATED_SENSOR_DATA</span>: Uplink from Sensor Hub to Fog Processor (10 MI, 100 bytes).</li>
+                                    <li><span class="mono">FAN_COMMAND</span> / <span class="mono">LED_COMMAND</span>: Downlink from Fog Processor to Actuators (1 MI, 10 bytes).</li>
+                                    <li><span class="mono">CLOUD_SUMMARY_DATA</span>: Uplink from Fog Processor to Cloud Datacenter (5 MI, 50 bytes).</li>
+                                </ul>
+                            </article>
+
+                            <article class="doc-article" id="doc-dataset-spec">
+                                <h2 class="doc-h2">6. Dataset Schema — SmartHomeDataset.csv</h2>
+                                <p>Each simulated sensor tick writes one row to <span class="mono">SmartHomeDataset.csv</span> with 14 typed attributes:</p>
+                                <div class="mono code-snippet">
+                                    Timestamp, Temperature, Humidity, LightIntensity, FanStatus, LEDStatus, FogProcessingTime(ms), CloudLatency(ms), EnergyConsumption(W), Decision, Occupancy, DayOfWeek, IsWeekend, IsAnomaly
+                                </div>
+                            </article>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 9: DEDICATED SETTINGS PAGE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-settings" id="view-settings" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Platform Settings &amp; Preferences</h1>
+                            <p class="page-subtitle">Configure workstation telemetry downsampling, terminal buffers, audio alerts, and display densities.</p>
+                        </div>
+                        <div class="page-actions">
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-save-settings">Save Preferences</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        
+                        <!-- Telemetry Preferences -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3 class="panel-title">Telemetry &amp; Polling Options</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <label class="form-label" for="setting-downsample">Chart Downsampling Limit</label>
+                                    <select id="setting-downsample" class="form-select">
+                                        <option value="60">60 points (Ultra-Fast)</option>
+                                        <option value="120" selected>120 points (Balanced Default)</option>
+                                        <option value="240">240 points (High Fidelity)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="setting-poll-rate">SSE Live Polling Interval</label>
+                                    <select id="setting-poll-rate" class="form-select">
+                                        <option value="1000">1.0 second</option>
+                                        <option value="1500" selected>1.5 seconds (Default)</option>
+                                        <option value="3000">3.0 seconds</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Console & Logging -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3 class="panel-title">Terminal &amp; Logging Depth</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <label class="form-label" for="setting-buffer-depth">Terminal Line Buffer</label>
+                                    <select id="setting-buffer-depth" class="form-select">
+                                        <option value="200">200 lines</option>
+                                        <option value="500" selected>500 lines (Standard)</option>
+                                        <option value="1000">1000 lines (Deep History)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="setting-sound-alert" checked>
+                                        <span>Play audible completion chime upon simulation termination</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Energy Model Coefficients -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3 class="panel-title">Energy Calculation Parameters</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Fog Node Idle Power (W)</label>
+                                        <input type="number" class="form-input mono" value="83.43" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Fog Node Busy Power (W)</label>
+                                        <input type="number" class="form-input mono" value="107.34" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Smart Fan Draw (W)</label>
+                                        <input type="number" class="form-input mono" value="80.00" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Smart LED Draw (W)</label>
+                                        <input type="number" class="form-input mono" value="10.00" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- Global Compact Footer Status Bar -->
+            <footer class="app-status-bar">
+                <div class="status-left">
+                    <span class="status-item"><strong class="mono">Homestead Fog Engine</strong> v2.1-SNAPSHOT</span>
+                    <span class="status-sep">|</span>
+                    <span class="status-item">CloudSim Core v3.0</span>
+                    <span class="status-sep">|</span>
+                    <span class="status-item" id="footer-dataset-status">Dataset: SmartHomeDataset.csv</span>
                 </div>
-            </div>
+                <div class="status-right">
+                    <span class="status-indicator-dot online"></span>
+                    <span id="footer-connection-status">Connected to Local Daemon (Port 3000)</span>
+                </div>
+            </footer>
 
-        </main>
-
-        <!-- FOOTER -->
-        <footer class="app-footer-bar">
-            <div class="footer-left">
-                <span>EcoSync Smart Grid Project © 2026</span>
-                <span class="footer-divider">|</span>
-                <span>iFogSim2 Engine Core v2.1-beta</span>
-            </div>
-            <div class="footer-right">
-                <span class="status-dot"></span>
-                <span>Connected to Local Host</span>
-            </div>
-        </footer>
+        </div>
     </div>
-    
+
+    <!-- Main Logic Script -->
     <script src="app.js"></script>
 </body>
 </html>
