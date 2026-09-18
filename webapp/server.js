@@ -411,6 +411,6 @@ function parsePerformanceReport(content, logContent) {
 }
 
 app.listen(PORT, () => {
-    console.log(`Homestead Fog Engine Workstation listening on port ${PORT}`);
+    console.log(`SmartHome FogSim Workstation listening on port ${PORT}`);
     console.log(`Open http://localhost:${PORT} in your browser`);
 });

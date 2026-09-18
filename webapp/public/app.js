@@ -1,6 +1,6 @@
 // ==========================================================================
-// HOMESTEAD FOG ENGINE // APPLICATION WORKSTATION CONTROLLER
-// Production-grade Technical Research Platform
+// SMARTHOME FOGSIM // WORKSTATION APPLICATION CONTROLLER
+// Production-grade IoT Edge & Fog Computing Research Platform
 // ==========================================================================
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -35,8 +35,18 @@ const state = {
         tempHumid: null,
         latency: null,
         light: null,
-        power: null
-    }
+        power: null,
+        roadmapSignal: null,
+        roadmapHysteresis: null,
+        roadmapPowerInrush: null,
+        roadmapLatency: null,
+        roadmapThroughput: null
+    },
+    // Roadmap State
+    roadmapChartsInitialized: false,
+    roadmapSpikesEnabled: true,
+    roadmapEwmaAlpha: 0.15,
+    roadmapBaseSignal: null
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -242,6 +252,18 @@ function navigateToHash(hash) {
         return;
     }
 
+    // In-page sub-anchors within Roadmap
+    if (rawHash.startsWith('roadmap-')) {
+        if (state.activeView !== 'view-roadmap') {
+            switchView('view-roadmap', 'Spikes Analysis & Scale Roadmap', 'console');
+        }
+        const targetEl = document.getElementById(rawHash);
+        if (targetEl) {
+            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+        return;
+    }
+
     const cleanHash = rawHash || 'overview';
     const viewMap = {
         'overview':      { id: 'view-overview',      crumb: 'Overview',             mode: 'console' },
@@ -252,6 +274,7 @@ function navigateToHash(hash) {
         'experiments':   { id: 'view-experiments',   crumb: 'Experiments & Benchmarks', mode: 'console' },
         'documentation': { id: 'view-documentation', crumb: 'Documentation',        mode: 'console' },
         'viva':          { id: 'view-viva',          crumb: 'Professor Defense & Code Walkthrough', mode: 'console' },
+        'roadmap':       { id: 'view-roadmap',       crumb: 'Spikes Analysis & Scale Roadmap',      mode: 'console' },
         'settings':      { id: 'view-settings',      crumb: 'Platform Settings',    mode: 'console' },
         'landing':       { id: 'view-landing',       crumb: 'Public Briefing',      mode: 'landing' }
     };
@@ -305,6 +328,8 @@ function switchView(viewId, crumbTitle, mode) {
             state.charts.overview.resize();
         } else if (viewId === 'view-telemetry') {
             Object.values(state.charts).forEach(c => c && c.resize());
+        } else if (viewId === 'view-roadmap') {
+            onRoadmapViewActivated();
         }
     }, 50);
 
@@ -624,6 +649,55 @@ function initEventListeners() {
     if (btnCollapseAllQa) {
         btnCollapseAllQa.addEventListener('click', () => {
             document.querySelectorAll('.viva-qa-item').forEach(item => item.classList.add('collapsed'));
+        });
+    }
+
+    // ─── Spikes & Scale Roadmap Interactive Listeners ───
+    const btnPrintRoadmap = document.getElementById('btn-print-roadmap');
+    if (btnPrintRoadmap) {
+        btnPrintRoadmap.addEventListener('click', () => window.print());
+    }
+
+    const btnCopyRoadmapPath = document.getElementById('btn-copy-roadmap-path');
+    if (btnCopyRoadmapPath) {
+        btnCopyRoadmapPath.addEventListener('click', () => {
+            navigator.clipboard.writeText('GRAPH_SPIKES_AND_PRODUCTION_ROADMAP.md').then(() => {
+                const orig = btnCopyRoadmapPath.innerHTML;
+                btnCopyRoadmapPath.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> <span>Copied!</span>`;
+                btnCopyRoadmapPath.classList.add('btn-primary');
+                setTimeout(() => {
+                    btnCopyRoadmapPath.innerHTML = orig;
+                    btnCopyRoadmapPath.classList.remove('btn-primary');
+                }, 2200);
+            }).catch(err => console.error('Copy failed:', err));
+        });
+    }
+
+    const sliderAlpha = document.getElementById('slider-ewma-alpha');
+    const valAlpha = document.getElementById('val-ewma-alpha');
+    if (sliderAlpha) {
+        sliderAlpha.addEventListener('input', (e) => {
+            const alpha = parseFloat(e.target.value);
+            if (valAlpha) valAlpha.textContent = alpha.toFixed(2);
+            state.roadmapEwmaAlpha = alpha;
+            updateRoadmapSignalLab(alpha, state.roadmapSpikesEnabled);
+        });
+    }
+
+    const btnToggleSpikes = document.getElementById('btn-toggle-spikes');
+    if (btnToggleSpikes) {
+        btnToggleSpikes.addEventListener('click', () => {
+            state.roadmapSpikesEnabled = !state.roadmapSpikesEnabled;
+            btnToggleSpikes.classList.toggle('active', state.roadmapSpikesEnabled);
+            updateRoadmapSignalLab(state.roadmapEwmaAlpha, state.roadmapSpikesEnabled);
+        });
+    }
+
+    const btnRegenSignal = document.getElementById('btn-regen-signal');
+    if (btnRegenSignal) {
+        btnRegenSignal.addEventListener('click', () => {
+            generateRoadmapBaseSignal();
+            updateRoadmapSignalLab(state.roadmapEwmaAlpha, state.roadmapSpikesEnabled);
         });
     }
 }
@@ -1155,7 +1229,7 @@ function initCharts() {
                     {
                         label: 'Temperature (°C)',
                         data: [],
-                        borderColor: '#00e5ff',
+                        borderColor: '#38bdf8',
                         backgroundColor: 'transparent',
                         borderWidth: 1.8,
                         yAxisID: 'y-temp',
@@ -1256,7 +1330,7 @@ function initCharts() {
                     {
                         label: 'Temperature (°C)',
                         data: [],
-                        borderColor: '#00e5ff',
+                        borderColor: '#38bdf8',
                         backgroundColor: 'transparent',
                         borderWidth: 1.8,
                         yAxisID: 'y1'
@@ -1264,7 +1338,7 @@ function initCharts() {
                     {
                         label: 'Humidity (%)',
                         data: [],
-                        borderColor: '#34d399',
+                        borderColor: '#10b981',
                         backgroundColor: 'transparent',
                         borderWidth: 1.8,
                         yAxisID: 'y2'
@@ -1295,8 +1369,8 @@ function initCharts() {
                     {
                         label: 'Fog Processing Latency (ms)',
                         data: [],
-                        borderColor: '#00e5ff',
-                        backgroundColor: 'rgba(0, 229, 255, 0.05)',
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.08)',
                         fill: true,
                         borderWidth: 1.8
                     },
@@ -1449,6 +1523,454 @@ function applyChartPoints(points) {
         state.charts.power.data.labels = labels;
         state.charts.power.data.datasets[0].data = points.map(p => p.power || 10.47);
         state.charts.power.update('none');
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10B. Spikes Analysis & Scale Roadmap Lab Charts
+// ─────────────────────────────────────────────────────────────────────────────
+function onRoadmapViewActivated() {
+    if (!state.roadmapChartsInitialized) {
+        initRoadmapCharts();
+        state.roadmapChartsInitialized = true;
+    } else {
+        ['roadmapSignal', 'roadmapHysteresis', 'roadmapPowerInrush', 'roadmapLatency', 'roadmapThroughput'].forEach(key => {
+            if (state.charts[key] && typeof state.charts[key].resize === 'function') {
+                state.charts[key].resize();
+            }
+        });
+    }
+}
+
+function generateRoadmapBaseSignal() {
+    const n = 60;
+    const rawWithSpikes = [];
+    const rawWithoutSpikes = [];
+
+    for (let i = 0; i < n; i++) {
+        // Smooth diurnal pattern baseline (25.0°C to 28.5°C)
+        const trend = 26.5 + 2.0 * Math.sin((i / 60) * Math.PI);
+        // Analog thermal noise (±0.4°C)
+        const noise = (Math.random() - 0.5) * 0.8;
+        const clean = parseFloat((trend + noise).toFixed(2));
+
+        if (i === 18) {
+            rawWithSpikes.push(parseFloat((clean + 21.8).toFixed(2))); // ~48.5°C flash spike (VirtualSensor.java)
+            rawWithoutSpikes.push(clean);
+        } else if (i === 42) {
+            rawWithSpikes.push(parseFloat((clean - 19.4).toFixed(2))); // ~7.2°C drop (freezing/sensor disconnect)
+            rawWithoutSpikes.push(clean);
+        } else {
+            rawWithSpikes.push(clean);
+            rawWithoutSpikes.push(clean);
+        }
+    }
+
+    state.roadmapBaseSignal = {
+        labels: Array.from({ length: n }, (_, i) => `${i}s`),
+        rawWithSpikes,
+        rawWithoutSpikes
+    };
+}
+
+function computeHampelFilter(arr, k = 5, thresholdFactor = 3.0) {
+    if (!arr || arr.length === 0) return [];
+    const half = Math.floor(k / 2);
+    const n = arr.length;
+    const result = [...arr];
+
+    for (let i = 0; i < n; i++) {
+        const start = Math.max(0, i - half);
+        const end = Math.min(n, i + half + 1);
+        const window = arr.slice(start, end);
+        const sorted = [...window].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+
+        const deviations = window.map(v => Math.abs(v - median)).sort((a, b) => a - b);
+        const mad = 1.4826 * deviations[Math.floor(deviations.length / 2)];
+        const threshold = Math.max(thresholdFactor * mad, 2.0);
+
+        if (Math.abs(arr[i] - median) > threshold) {
+            result[i] = parseFloat(median.toFixed(2));
+        }
+    }
+    return result;
+}
+
+function computeEWMAFilter(arr, alpha = 0.15) {
+    if (!arr || arr.length === 0) return [];
+    const result = new Array(arr.length);
+    result[0] = arr[0];
+    for (let i = 1; i < arr.length; i++) {
+        result[i] = parseFloat((alpha * arr[i] + (1 - alpha) * result[i - 1]).toFixed(2));
+    }
+    return result;
+}
+
+function updateRoadmapSignalLab(alpha, includeSpikes) {
+    if (!state.roadmapBaseSignal) generateRoadmapBaseSignal();
+    const raw = includeSpikes ? state.roadmapBaseSignal.rawWithSpikes : state.roadmapBaseSignal.rawWithoutSpikes;
+    const hampel = computeHampelFilter(raw);
+    const ewma = computeEWMAFilter(hampel, alpha);
+
+    if (state.charts.roadmapSignal) {
+        state.charts.roadmapSignal.data.datasets[0].data = raw;
+        state.charts.roadmapSignal.data.datasets[1].data = hampel;
+        state.charts.roadmapSignal.data.datasets[2].data = ewma;
+        state.charts.roadmapSignal.update('none');
+    }
+}
+
+function initRoadmapCharts() {
+    generateRoadmapBaseSignal();
+    const raw = state.roadmapSpikesEnabled ? state.roadmapBaseSignal.rawWithSpikes : state.roadmapBaseSignal.rawWithoutSpikes;
+    const hampel = computeHampelFilter(raw);
+    const ewma = computeEWMAFilter(hampel, state.roadmapEwmaAlpha);
+
+    // ── Chart 1: Signal Lab (Raw vs Hampel vs EWMA) ──
+    const ctxSignal = document.getElementById('roadmapSignalChart');
+    if (ctxSignal) {
+        state.charts.roadmapSignal = new Chart(ctxSignal.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: state.roadmapBaseSignal.labels,
+                datasets: [
+                    {
+                        label: 'Raw Unfiltered (Noise + Spikes)',
+                        data: raw,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.2,
+                        borderDash: [2, 2],
+                        pointRadius: 2.5,
+                        pointBackgroundColor: '#ef4444',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Hampel Median Clamped',
+                        data: hampel,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.6,
+                        borderDash: [4, 4],
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'EWMA Filtered (Production)',
+                        data: ewma,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.08)',
+                        borderWidth: 2.4,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}°C`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: {
+                        min: 0,
+                        max: 55,
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        title: { display: true, text: 'Temperature (°C)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Chart 2: Hysteresis / Anti-Hunting ──
+    const ctxHyst = document.getElementById('roadmapHysteresisChart');
+    if (ctxHyst) {
+        const nHyst = 40;
+        const labelsHyst = Array.from({ length: nHyst }, (_, i) => `${i}s`);
+        const tempHyst = [];
+        const naiveRelay = [];
+        const hysteresisRelay = [];
+        let hystState = 0;
+
+        for (let i = 0; i < nHyst; i++) {
+            const temp = parseFloat((29.4 + (i / 40.0) * 1.3 + 0.42 * Math.sin(i * 0.85)).toFixed(2));
+            tempHyst.push(temp);
+            naiveRelay.push(temp > 30.0 ? 1 : 0);
+
+            if (hystState === 0 && temp >= 30.5) {
+                hystState = 1;
+            } else if (hystState === 1 && temp <= 29.5) {
+                hystState = 0;
+            }
+            hysteresisRelay.push(hystState);
+        }
+
+        state.charts.roadmapHysteresis = new Chart(ctxHyst.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsHyst,
+                datasets: [
+                    {
+                        label: 'Naive Relay (Chattering Cycles)',
+                        data: naiveRelay,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.8,
+                        stepped: true,
+                        yAxisID: 'y-relay'
+                    },
+                    {
+                        label: 'Schmitt Hysteresis (Stable Single Transition)',
+                        data: hysteresisRelay,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        borderWidth: 2.2,
+                        stepped: true,
+                        fill: true,
+                        yAxisID: 'y-relay'
+                    },
+                    {
+                        label: 'Ambient Temp (°C)',
+                        data: tempHyst,
+                        borderColor: 'rgba(255, 255, 255, 0.45)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.2,
+                        borderDash: [2, 2],
+                        pointRadius: 0,
+                        tension: 0.2,
+                        yAxisID: 'y-temp'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+                    'y-relay': {
+                        type: 'linear',
+                        position: 'left',
+                        min: -0.1,
+                        max: 1.2,
+                        ticks: {
+                            callback: (v) => v === 1 ? 'ON' : (v === 0 ? 'OFF' : '')
+                        },
+                        grid: { color: 'rgba(255,255,255,0.04)' }
+                    },
+                    'y-temp': {
+                        type: 'linear',
+                        position: 'right',
+                        min: 28.5,
+                        max: 31.5,
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Temp (°C)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Chart 3: Power Inrush vs Soft-Start ──
+    const ctxPowerInrush = document.getElementById('roadmapPowerInrushChart');
+    if (ctxPowerInrush) {
+        const nP = 50;
+        const labelsP = Array.from({ length: nP }, (_, i) => `${(i * 0.1).toFixed(1)}s`);
+        const inrushP = [];
+        const stepP = [];
+        const softStartP = [];
+
+        for (let i = 0; i < nP; i++) {
+            const t = i * 0.1;
+            if (t < 1.0) {
+                inrushP.push(5.0);
+                stepP.push(5.0);
+                softStartP.push(5.0);
+            } else {
+                stepP.push(85.0);
+                const dt = t - 1.0;
+                const inrush = 85.0 + 235.0 * Math.exp(-dt / 0.25);
+                inrushP.push(parseFloat(inrush.toFixed(1)));
+
+                if (t >= 3.5) {
+                    softStartP.push(85.0);
+                } else {
+                    const progress = dt / 2.5;
+                    const smooth = 5.0 + 80.0 * (0.5 - 0.5 * Math.cos(Math.PI * progress));
+                    softStartP.push(parseFloat(smooth.toFixed(1)));
+                }
+            }
+        }
+
+        state.charts.roadmapPowerInrush = new Chart(ctxPowerInrush.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labelsP,
+                datasets: [
+                    {
+                        label: 'Unprotected Motor (320W Inrush Surge)',
+                        data: inrushP,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Simulation Step Model (5W → 85W)',
+                        data: stepP,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.8,
+                        stepped: true
+                    },
+                    {
+                        label: 'Industrial Soft-Start PWM Ramp',
+                        data: softStartP,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2.4,
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} W` } }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: {
+                        min: 0,
+                        max: 350,
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        title: { display: true, text: 'Instantaneous Power (Watts)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Chart 4: Latency Breakdown ──
+    const ctxLat = document.getElementById('roadmapLatencyChart');
+    if (ctxLat) {
+        state.charts.roadmapLatency = new Chart(ctxLat.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['LAN Node-to-Fog', 'Fog Node Compute', 'WAN Fog-to-Cloud', 'Cloud History Log', 'Fog Local Control Loop', 'Cloud Control Loop'],
+                datasets: [
+                    {
+                        label: 'iFogSim2 Simulation (Idealized)',
+                        data: [2.0, 2.8, 40.0, 4.2, 4.8, 86.2],
+                        backgroundColor: '#38bdf8',
+                        borderRadius: 3
+                    },
+                    {
+                        label: 'Real-World Deployment (Jitter/Loss)',
+                        data: [12.4, 3.5, 88.0, 8.5, 15.9, 185.0],
+                        backgroundColor: '#a855f7',
+                        borderRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} ms` } }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: {
+                        min: 0,
+                        max: 200,
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        title: { display: true, text: 'Latency (ms)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Chart 5: Throughput Scale ──
+    const ctxThroughput = document.getElementById('roadmapThroughputChart');
+    if (ctxThroughput) {
+        state.charts.roadmapThroughput = new Chart(ctxThroughput.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['1 Home', '10 Homes', '50 Homes', '100 Homes', '250 Homes', '500 Homes', '1,000 Homes', '5,000 Homes', '10,000 Homes'],
+                datasets: [
+                    {
+                        label: 'Flat CSV File (Locks & Crashes at 250+)',
+                        data: [10, 100, 500, 1000, 1250, null, null, null, null],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [4, 4],
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ef4444'
+                    },
+                    {
+                        label: 'Apache Kafka + TimescaleDB Partitioning',
+                        data: [10, 100, 500, 1000, 2500, 5000, 10000, 50000, 100000],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        borderWidth: 2.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                if (ctx.raw === null) return `${ctx.dataset.label}: Failed (Lock contention)`;
+                                return `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} events/s`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: {
+                        type: 'logarithmic',
+                        min: 1,
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        title: { display: true, text: 'Throughput: Events / Second (Log Scale)', color: '#94a3b8' },
+                        ticks: {
+                            callback: (v) => v === 10 || v === 100 || v === 1000 || v === 10000 || v === 100000 ? v.toLocaleString() : ''
+                        }
+                    }
+                }
+            }
+        });
     }
 }
 
