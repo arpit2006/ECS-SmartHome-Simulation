@@ -216,7 +216,33 @@ function handleHashChange() {
 }
 
 function navigateToHash(hash) {
-    const cleanHash = hash.replace(/^#/, '') || 'overview';
+    const rawHash = (hash || '').replace(/^#/, '');
+
+    // In-page sub-anchors within Viva guide
+    if (rawHash.startsWith('viva-')) {
+        if (state.activeView !== 'view-viva') {
+            switchView('view-viva', 'Professor Defense & Code Walkthrough', 'console');
+        }
+        const targetEl = document.getElementById(rawHash);
+        if (targetEl) {
+            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+        return;
+    }
+
+    // In-page sub-anchors within Documentation
+    if (rawHash.startsWith('doc-')) {
+        if (state.activeView !== 'view-documentation') {
+            switchView('view-documentation', 'Documentation', 'console');
+        }
+        const targetEl = document.getElementById(rawHash);
+        if (targetEl) {
+            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+        return;
+    }
+
+    const cleanHash = rawHash || 'overview';
     const viewMap = {
         'overview':      { id: 'view-overview',      crumb: 'Overview',             mode: 'console' },
         'simulation':    { id: 'view-simulation',    crumb: 'Simulation Workbench', mode: 'console' },
@@ -225,6 +251,7 @@ function navigateToHash(hash) {
         'dataset':       { id: 'view-dataset',       crumb: 'Dataset Explorer',     mode: 'console' },
         'experiments':   { id: 'view-experiments',   crumb: 'Experiments & Benchmarks', mode: 'console' },
         'documentation': { id: 'view-documentation', crumb: 'Documentation',        mode: 'console' },
+        'viva':          { id: 'view-viva',          crumb: 'Professor Defense & Code Walkthrough', mode: 'console' },
         'settings':      { id: 'view-settings',      crumb: 'Platform Settings',    mode: 'console' },
         'landing':       { id: 'view-landing',       crumb: 'Public Briefing',      mode: 'landing' }
     };
@@ -374,6 +401,23 @@ function initEventListeners() {
         });
     }
 
+    // Overview chart legend interactive dataset toggle
+    document.querySelectorAll('#overview-chart-legend .legend-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const idx = parseInt(item.getAttribute('data-dataset'), 10);
+            if (state.charts.overview && state.charts.overview.data.datasets[idx]) {
+                const isVisible = state.charts.overview.isDatasetVisible(idx);
+                if (isVisible) {
+                    state.charts.overview.hide(idx);
+                    item.classList.add('legend-item-disabled');
+                } else {
+                    state.charts.overview.show(idx);
+                    item.classList.remove('legend-item-disabled');
+                }
+            }
+        });
+    });
+
     // Terminal Controls
     if (DOM.btnClearTerminal) {
         DOM.btnClearTerminal.addEventListener('click', () => {
@@ -469,6 +513,117 @@ function initEventListeners() {
     if (btnSaveSettings) {
         btnSaveSettings.addEventListener('click', () => {
             alert('Settings updated successfully.');
+        });
+    }
+
+    // ─── Professor Viva Guide Interactive Listeners ───
+    // 1. Table of Contents Smooth Scrolling (prevents hash collisions)
+    document.querySelectorAll('.docs-toc .toc-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                const targetId = href.substring(1);
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    e.preventDefault();
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const toc = link.closest('.docs-toc');
+                    if (toc) {
+                        toc.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                }
+            }
+        });
+    });
+
+    // 2. Copy Elevator Pitch Button
+    const btnCopyPitch = document.getElementById('btn-copy-pitch');
+    if (btnCopyPitch) {
+        btnCopyPitch.addEventListener('click', () => {
+            const quoteEl = document.getElementById('viva-speech-quote');
+            if (quoteEl) {
+                navigator.clipboard.writeText(quoteEl.innerText.trim()).then(() => {
+                    const origHtml = btnCopyPitch.innerHTML;
+                    btnCopyPitch.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> <span>Copied!</span>`;
+                    btnCopyPitch.classList.add('btn-primary');
+                    setTimeout(() => {
+                        btnCopyPitch.innerHTML = origHtml;
+                        btnCopyPitch.classList.remove('btn-primary');
+                    }, 2200);
+                }).catch(err => console.error('Copy failed:', err));
+            }
+        });
+    }
+
+    // 3. Print / Export PDF Button
+    const btnPrintViva = document.getElementById('btn-print-viva');
+    if (btnPrintViva) {
+        btnPrintViva.addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    // 4. Viva Q&A Accordion Expand/Collapse
+    document.querySelectorAll('.viva-qa-item').forEach(item => {
+        const header = item.querySelector('.viva-qa-header');
+        if (header) {
+            header.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-copy-qa')) return;
+                item.classList.toggle('collapsed');
+            });
+        }
+    });
+
+    // 5. Viva Q&A Copy Answer Buttons
+    document.querySelectorAll('.btn-copy-qa').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const item = btn.closest('.viva-qa-item');
+            if (item) {
+                const answerEl = item.querySelector('.viva-a');
+                if (answerEl) {
+                    navigator.clipboard.writeText(answerEl.innerText.trim()).then(() => {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+                        btn.classList.add('copied');
+                        setTimeout(() => {
+                            btn.innerHTML = orig;
+                            btn.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => console.error('Copy failed:', err));
+                }
+            }
+        });
+    });
+
+    // 6. Viva Q&A Category Filter Pills
+    document.querySelectorAll('.viva-pill-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.viva-pill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const cat = btn.getAttribute('data-category');
+            document.querySelectorAll('.viva-qa-item').forEach(item => {
+                if (cat === 'all' || item.getAttribute('data-cat') === cat) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // 7. Expand All / Collapse All Questions
+    const btnExpandAllQa = document.getElementById('btn-expand-all-qa');
+    if (btnExpandAllQa) {
+        btnExpandAllQa.addEventListener('click', () => {
+            document.querySelectorAll('.viva-qa-item').forEach(item => item.classList.remove('collapsed'));
+        });
+    }
+    const btnCollapseAllQa = document.getElementById('btn-collapse-all-qa');
+    if (btnCollapseAllQa) {
+        btnCollapseAllQa.addEventListener('click', () => {
+            document.querySelectorAll('.viva-qa-item').forEach(item => item.classList.add('collapsed'));
         });
     }
 }
@@ -1014,6 +1169,17 @@ function initCharts() {
                         borderWidth: 1.8,
                         yAxisID: 'y-light',
                         tension: 0.2
+                    },
+                    {
+                        label: 'Fan State (ON/OFF)',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        borderWidth: 2,
+                        yAxisID: 'y-fan',
+                        stepped: true,
+                        fill: true,
+                        tension: 0
                     }
                 ]
             },
@@ -1022,6 +1188,25 @@ function initCharts() {
                 maintainAspectRatio: false,
                 animation: { duration: 400 },
                 interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.yAxisID === 'y-fan') {
+                                    return `Fan: ${context.raw === 1 ? 'ON (Active)' : 'OFF'}`;
+                                }
+                                if (context.dataset.yAxisID === 'y-temp') {
+                                    const val = typeof context.raw === 'number' ? context.raw.toFixed(1) : context.raw;
+                                    return `Temp: ${val}°C`;
+                                }
+                                if (context.dataset.yAxisID === 'y-light') {
+                                    return `Light: ${context.raw} LDR`;
+                                }
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     x: {
                         grid: { color: gridColor, drawTicks: false },
@@ -1040,6 +1225,20 @@ function initCharts() {
                         position: 'right',
                         grid: { drawOnChartArea: false, drawTicks: false },
                         border: { display: false }
+                    },
+                    'y-fan': {
+                        type: 'linear',
+                        position: 'right',
+                        min: 0,
+                        max: 1.15,
+                        grid: { drawOnChartArea: false, drawTicks: false },
+                        border: { display: false },
+                        ticks: {
+                            stepSize: 1,
+                            color: '#10b981',
+                            font: { size: 9, weight: '600' },
+                            callback: v => (v === 1 ? 'FAN ON' : (v === 0 ? 'OFF' : ''))
+                        }
                     }
                 }
             }
@@ -1135,7 +1334,18 @@ function initCharts() {
                         data: [],
                         borderColor: '#f59e0b',
                         backgroundColor: 'transparent',
-                        borderWidth: 1.8
+                        borderWidth: 1.8,
+                        yAxisID: 'y-light'
+                    },
+                    {
+                        label: 'LED Active (ON/OFF)',
+                        data: [],
+                        borderColor: '#fbbf24',
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        borderWidth: 1.8,
+                        stepped: true,
+                        fill: true,
+                        yAxisID: 'y-led'
                     }
                 ]
             },
@@ -1145,7 +1355,18 @@ function initCharts() {
                 animation: false,
                 scales: {
                     x: { grid: { color: gridColor }, ticks: { maxTicksLimit: 8 } },
-                    y: { grid: { color: gridColor }, min: 0, max: 1024 }
+                    'y-light': { grid: { color: gridColor }, min: 0, max: 1024, position: 'left', title: { display: true, text: 'Light (LDR)' } },
+                    'y-led': {
+                        type: 'linear',
+                        position: 'right',
+                        min: 0,
+                        max: 1.15,
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            stepSize: 1,
+                            callback: v => (v === 1 ? 'LED ON' : (v === 0 ? 'OFF' : ''))
+                        }
+                    }
                 }
             }
         });
@@ -1191,6 +1412,9 @@ function applyChartPoints(points) {
         state.charts.overview.data.labels = labels;
         state.charts.overview.data.datasets[0].data = points.map(p => p.temp);
         state.charts.overview.data.datasets[1].data = points.map(p => p.light);
+        if (state.charts.overview.data.datasets[2]) {
+            state.charts.overview.data.datasets[2].data = points.map(p => (p.fan === 1 || p.fan === '1' || (p.FanStatus && p.FanStatus.includes('ON'))) ? 1 : 0);
+        }
         state.charts.overview.update('none');
     }
 
@@ -1214,6 +1438,9 @@ function applyChartPoints(points) {
     if (state.charts.light) {
         state.charts.light.data.labels = labels;
         state.charts.light.data.datasets[0].data = points.map(p => p.light);
+        if (state.charts.light.data.datasets[1]) {
+            state.charts.light.data.datasets[1].data = points.map(p => (p.led === 1 || p.led === '1' || (p.LEDStatus && p.LEDStatus.includes('ON'))) ? 1 : 0);
+        }
         state.charts.light.update('none');
     }
 

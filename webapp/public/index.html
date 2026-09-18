@@ -117,6 +117,14 @@
                     <span class="nav-label">Documentation</span>
                 </a>
 
+                <a href="#viva" class="nav-item" data-view="view-viva">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span class="nav-label">Professor Viva Guide</span>
+                    <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">VIVA</span>
+                </a>
+
                 <a href="#settings" class="nav-item" data-view="view-settings">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
@@ -1065,9 +1073,10 @@
                                         </div>
                                     </div>
                                     <div class="header-right">
-                                        <div class="chart-legend-wrap">
-                                            <span class="legend-item"><span class="legend-dot color-temp"></span>Temp (°C)</span>
-                                            <span class="legend-item"><span class="legend-dot color-light"></span>Light (LDR)</span>
+                                        <div class="chart-legend-wrap" id="overview-chart-legend">
+                                            <span class="legend-item" data-dataset="0" style="cursor: pointer;" title="Toggle Temperature"><span class="legend-dot color-temp"></span>Temp (°C)</span>
+                                            <span class="legend-item" data-dataset="1" style="cursor: pointer;" title="Toggle Light"><span class="legend-dot color-light"></span>Light (LDR)</span>
+                                            <span class="legend-item" data-dataset="2" style="cursor: pointer;" title="Toggle Fan State"><span class="legend-dot color-fan"></span>Fan (ON/OFF)</span>
                                         </div>
                                         <button type="button" class="btn btn-ghost btn-sm" id="btn-expand-telemetry" title="Open Full Analytics Workspace">
                                             <span>Full View</span>
@@ -1952,6 +1961,365 @@
                                 <p>Each simulated sensor tick writes one row to <span class="mono">SmartHomeDataset.csv</span> with 14 typed attributes:</p>
                                 <div class="mono code-snippet">
                                     Timestamp, Temperature, Humidity, LightIntensity, FanStatus, LEDStatus, FogProcessingTime(ms), CloudLatency(ms), EnergyConsumption(W), Decision, Occupancy, DayOfWeek, IsWeekend, IsAnomaly
+                                </div>
+                            </article>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─────────────────────────────────────────────────────────────
+                     VIEW 8B: PROFESSOR DEFENSE & VIVA WALKTHROUGH GUIDE
+                     ───────────────────────────────────────────────────────────── -->
+                <section class="workspace-view view-viva" id="view-viva" style="display:none;">
+                    
+                    <div class="page-title-strip">
+                        <div>
+                            <h1 class="page-title">Professor Defense &amp; Viva Walkthrough Guide</h1>
+                            <p class="page-subtitle">Comprehensive academic defense blueprint: 60-second opening pitch, real-world utility, Java codebase breakdown, discrete-event mechanics, and top 10 viva defense questions with exact answers.</p>
+                        </div>
+                        <div class="page-actions viva-actions-wrap">
+                            <button type="button" class="btn btn-ghost btn-sm" id="btn-print-viva" title="Print or Save as PDF">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                <span>Print / PDF</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-pitch" title="Copy Opening Speech">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span>Copy Pitch</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="window.location.hash='#simulation'">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span>Launch Live Demo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="docs-layout">
+                        <!-- Sticky Navigation Index -->
+                        <nav class="docs-toc">
+                            <div class="toc-title">Viva Defense Index</div>
+                            <a href="#viva-elevator" class="toc-link active">1. 60-Sec Elevator Pitch</a>
+                            <a href="#viva-utility" class="toc-link">2. Why This is Useful (Impact)</a>
+                            <a href="#viva-code" class="toc-link">3. Java Architecture &amp; Classes</a>
+                            <a href="#viva-des" class="toc-link">4. Discrete-Event Math</a>
+                            <a href="#viva-qa" class="toc-link">5. Top 10 Viva Q&amp;A</a>
+                            <a href="#viva-checklist" class="toc-link">6. Live Demo Checklist</a>
+                        </nav>
+
+                        <!-- Main Content Articles -->
+                        <div class="docs-content">
+
+                            <!-- ARTICLE 1: ELEVATOR PITCH -->
+                            <article class="doc-article" id="viva-elevator">
+                                <h2 class="doc-h2">1. The 60-Second Elevator Pitch (What to Say First)</h2>
+                                <p>When your professor asks: <em>"What have you done in this project and what is the core problem solved?"</em>, recite this verbatim:</p>
+                                
+                                <div class="speech-card">
+                                    <div class="speech-card-header">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                        <span>Opening Defense Statement (Speak Confidently)</span>
+                                    </div>
+                                    <div class="speech-quote" id="viva-speech-quote">
+                                        "Professor, our project evaluates and proves the advantage of Fog Computing over traditional Cloud IoT for Smart Home Automation using iFogSim2 and CloudSim in Java, combined with a real-time monitoring workstation. In traditional setups, smart home sensors continuously stream high-frequency data over the public internet to a distant cloud datacenter, introducing severe latency, bandwidth bottlenecks, and single-point-of-failure vulnerabilities. We designed a hierarchical 3-tier architecture where a local Fog Gateway intercepts sensor telemetry right at the local network edge. Our Fog Node executes local classification rules in under 5.67 milliseconds—slashing round-trip latency by 86% compared to the 41-millisecond cloud WAN route. Furthermore, our system enforces an automated greenhouse energy conservation policy that shuts down high-draw appliances when the home is unoccupied, eliminates cloud network congestion by forwarding only periodic aggregated summaries, and logs a high-fidelity 10,000-row dataset for training predictive edge Machine Learning models."
+                                    </div>
+                                    <div class="highlight-pill-row">
+                                        <div class="highlight-pill"><strong>86.2%</strong> Latency Cut (5.67ms vs 41ms)</div>
+                                        <div class="highlight-pill"><strong>10,001</strong> Discrete Events Simulated</div>
+                                        <div class="highlight-pill"><strong>~13.9 hrs</strong> Simulated in 1.06s CPU</div>
+                                        <div class="highlight-pill"><strong>80W &amp; 10W</strong> Automated Power Curtailment</div>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- ARTICLE 2: WHY THIS IS USEFUL -->
+                            <article class="doc-article" id="viva-utility">
+                                <h2 class="doc-h2">2. Why This is Useful (The Engineering &amp; Research Value)</h2>
+                                <p>To earn top marks, explain the <strong>5 major real-world engineering advantages</strong> of this project over classical cloud IoT architectures:</p>
+                                
+                                <table class="specs-table" style="margin-bottom: 16px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Dimension</th>
+                                            <th>Traditional Pure Cloud IoT</th>
+                                            <th>Our Fog Computing Solution</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Decision Latency</strong></td>
+                                            <td>~41 ms WAN round-trip (causes noticeable actuator lag)</td>
+                                            <td><span class="mono" style="color:var(--accent-cyan);">5.67 ms</span> via local LAN + edge CPU (86% faster)</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>WAN Bandwidth Usage</strong></td>
+                                            <td>Streams all 10,000 raw sensor events across internet</td>
+                                            <td>Raw data stays local; only compact summary batches go to Cloud</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Offline Resilience</strong></td>
+                                            <td>Complete home failure during ISP / internet outages</td>
+                                            <td>Autonomous operation: cooling &amp; lights operate 100% locally</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Privacy &amp; Security</strong></td>
+                                            <td>Personal occupancy &amp; diurnal habits sent to 3rd party servers</td>
+                                            <td>Sensitive presence telemetry strictly contained in home gateway</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Energy Policy</strong></td>
+                                            <td>Threshold-only triggers regardless of occupancy state</td>
+                                            <td>Greenhouse override: forces Fan/LED OFF when unoccupied</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="math-block">
+                                    <div class="math-title">Key Utility Highlight: Machine Learning Data Pipeline</div>
+                                    <p class="math-sub" style="color: var(--text-primary);">The simulation generates <span class="mono">SmartHomeDataset.csv</span> with 14 engineered attributes: <span class="mono">Timestamp, Temperature, Humidity, LightIntensity, FanStatus, LEDStatus, FogProcessingTime(ms), CloudLatency(ms), EnergyConsumption(W), Decision, Occupancy, DayOfWeek, IsWeekend, IsAnomaly</span>. This dataset can be directly loaded into Python (scikit-learn / TensorFlow) to train Random Forest, SVM, or LSTM models for predictive smart home automation.</p>
+                                </div>
+                            </article>
+
+                            <!-- ARTICLE 3: JAVA ARCHITECTURE & CODE WALKTHROUGH -->
+                            <article class="doc-article" id="viva-code">
+                                <h2 class="doc-h2">3. Java Codebase Architecture (How the Code is Written)</h2>
+                                <p>The simulation codebase is written in object-oriented Java on top of the <strong>iFogSim2</strong> and <strong>CloudSim</strong> frameworks. Here is the exact role of each file in <span class="mono">src/main/java/com/smarthome/</span>:</p>
+
+                                <div class="code-card-grid">
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">MainSimulation.java</div>
+                                        <div class="code-class-role">Entry Point &amp; Orchestration</div>
+                                        <div class="code-class-desc">Initializes CloudSim kernel (<span class="mono">CloudSim.init</span>), invokes <span class="mono">FogNodeManager</span> to build devices, creates application modules (<span class="mono">fog_processor_module</span>, <span class="mono">cloud_history_module</span>), defines app edges, maps modules to physical hardware, and starts the discrete-event clock.</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">SmartHomeFogDevice.java</div>
+                                        <div class="code-class-role">Core Gateway Subclass</div>
+                                        <div class="code-class-desc">Extends iFogSim2's <span class="mono">FogDevice</span>. Overrides <span class="mono">executeTuple(SimEvent ev, String moduleName)</span> to intercept <span class="mono">AGGREGATED_SENSOR_DATA</span> tuples, invoke the Decision Engine, calculate power draw, log to CSV, and route actuator tuples.</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">DecisionEngine.java</div>
+                                        <div class="code-class-role">Local Automation Brain</div>
+                                        <div class="code-class-desc">Stateless rule engine. Evaluates occupancy first: if unoccupied (<span class="mono">0</span>), both Fan and LED are forced OFF. If occupied, evaluates: Temp &gt; 30.0°C &rarr; Fan ON; Light &lt; 400 LDR &rarr; LED ON. Returns multi-class labels (<span class="mono">FAN_ON_LED_ON</span>, etc.).</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">SensorGenerator.java</div>
+                                        <div class="code-class-role">Diurnal Environmental Model</div>
+                                        <div class="code-class-desc">Generates realistic environmental values using sinusoidal curves modeling diurnal solar day/night heating. Injects Gaussian noise and a 2% synthetic anomaly generator (freezing drafts, fires, sensor covers).</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">SmartHomeSensor.java &amp; Tuple.java</div>
+                                        <div class="code-class-role">Event Generators &amp; Packets</div>
+                                        <div class="code-class-desc"><span class="mono">SmartHomeSensor</span> fires every 5.0 simulated seconds. <span class="mono">SmartHomeTuple</span> extends CloudSim <span class="mono">Tuple</span> to carry typed payload fields (temperature, humidity, light, occupancy) up the network tree.</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">EnergyCalculator.java</div>
+                                        <div class="code-class-role">Instantaneous Power Modeling</div>
+                                        <div class="code-class-desc">Computes real-time home electrical draw in Watts: Base parasitic power (5W) + Smart Fan (80W when active) + Smart LED (10W when active), and integrates total energy in Joules.</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">CSVLogger.java &amp; Statistics.java</div>
+                                        <div class="code-class-role">Dataset Streaming &amp; Analytics</div>
+                                        <div class="code-class-desc"><span class="mono">CSVLogger</span> streams every decision event to <span class="mono">SmartHomeDataset.csv</span>. <span class="mono">Statistics</span> computes running averages, min/max latencies, and writes <span class="mono">PerformanceReport.txt</span> upon simulation completion.</div>
+                                    </div>
+
+                                    <div class="code-class-card">
+                                        <div class="code-class-name">Constants.java</div>
+                                        <div class="code-class-role">System Specifications</div>
+                                        <div class="code-class-desc">Defines simulation duration (<span class="mono">50005.0s</span>), sampling interval (<span class="mono">5.0s</span>), hardware MIPS (Cloud: 44,800, Fog: 2,800, NodeMCU: 80), RAM, and link latencies (LAN: 2ms, WAN: 40ms).</div>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- ARTICLE 4: DISCRETE EVENT SIMULATION MECHANICS -->
+                            <article class="doc-article" id="viva-des">
+                                <h2 class="doc-h2">4. How CloudSim &amp; iFogSim2 Work (Discrete-Event Mechanics)</h2>
+                                <p>Professors often ask: <em>"Why did the simulation run 50,000 seconds of time in only 1 second of wall clock?"</em></p>
+                                
+                                <div class="math-block">
+                                    <div class="math-title">Discrete-Event Simulation (DES) vs Real-Time Execution:</div>
+                                    <code>Virtual Clock: CloudSim.clock() advances discretely from Event_n to Event_n+1 via FutureQueue</code>
+                                    <p class="math-sub">The simulation engine does NOT use Thread.sleep(). It maintains a priority queue of scheduled discrete events. When an event completes at T=5.0s, the engine immediately jumps the clock to T=10.0s, skipping idle time. Thus, 13.9 hours of household operation is calculated in ~1.06 seconds.</p>
+                                </div>
+
+                                <div class="math-block">
+                                    <div class="math-title">CPU Processing Delay Calculation Formula:</div>
+                                    <code>Execution Delay (ms) = ( Tuple CPU Length in MI / Device Processing Capacity in MIPS ) &times; 1000</code>
+                                    <p class="math-sub">For a 10 MI tuple arriving at the Fog Gateway (2,800 MIPS): Delay = (10 / 2800) &times; 1000 = 3.57 ms. Adding 2.0 ms LAN network delay produces the observed ~5.67 ms total turnaround latency.</p>
+                                </div>
+                            </article>
+
+                            <!-- ARTICLE 5: TOP 10 VIVA QUESTIONS & ANSWERS -->
+                            <article class="doc-article" id="viva-qa">
+                                <h2 class="doc-h2">5. Top 10 Professor Viva Questions &amp; Exact Model Answers</h2>
+                                <p>Click any question below to expand/collapse the answer, or use the category filters and copy buttons to prepare:</p>
+
+                                <div class="viva-category-nav">
+                                    <button type="button" class="viva-pill-btn active" data-category="all">All (10)</button>
+                                    <button type="button" class="viva-pill-btn" data-category="arch">Architecture</button>
+                                    <button type="button" class="viva-pill-btn" data-category="perf">Performance &amp; Energy</button>
+                                    <button type="button" class="viva-pill-btn" data-category="ml">Machine Learning</button>
+                                    <button type="button" class="viva-pill-btn" data-category="sim">Simulation Math</button>
+                                    <div style="margin-left: auto; display: flex; gap: 6px;">
+                                        <button type="button" class="btn-mini" id="btn-expand-all-qa">Expand All</button>
+                                        <button type="button" class="btn-mini" id="btn-collapse-all-qa">Collapse All</button>
+                                    </div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="sim">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q1</span> Why did you build a software simulation instead of just connecting a physical NodeMCU?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> In edge computing research, software simulation functions as a <em>computational wind tunnel</em>. Physical hardware prototyping is restricted to 1 room over a few hours and cannot test network bandwidth degradation, link latency jitter, or extreme anomaly conditions safely. With iFogSim2, we can model a multi-tier infrastructure, test 14 hours of continuous operation across 10,000 events, track exact microsecond CPU delays and energy metrics, and produce standardized reproducible datasets without hardware burnout.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="ml">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q2</span> Why did you use rule-based logic in Java rather than a Deep Neural Network?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> First, the Fog Gateway needs deterministic, sub-millisecond decision speeds with minimal CPU footprint. Rule-based logic provides zero-inference overhead. Second, our simulation serves as the <em>data generator</em>: machine learning models require thousands of labeled examples to train. Our system generates that ground-truth dataset (<span class="mono">SmartHomeDataset.csv</span>), which can then be used to train neural networks or Random Forests for predictive automation.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="arch">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q3</span> Where is the Fog Node located in real-world physical reality?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> The Fog Node represents a local smart home gateway device located inside the residence—such as a Raspberry Pi 4, an edge router with onboard computation, or an Intel NUC mini-PC connected directly to the home Wi-Fi and local Ethernet LAN.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="sim">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q4</span> What is the fundamental difference between CloudSim and iFogSim2?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> CloudSim simulates centralized datacenters, virtual machine provisioning, and cloud broker schedulers. iFogSim2 extends CloudSim by adding hierarchical edge topologies (<span class="mono">FogDevice</span>), physical sensors (<span class="mono">Sensor</span>), actuators (<span class="mono">Actuator</span>), fractional stream tuple selectivity, and distributed application module placement policies.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="arch">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q5</span> How does the Web Dashboard communicate with the Java simulation?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> The Node.js Express server executes the compiled Java bytecode as a child process via Maven (<span class="mono">mvn exec:java</span>). While Java executes and logs data, Express streams the output lines and polls the generated CSV dataset using Server-Sent Events (SSE) over the <span class="mono">/api/run</span> HTTP endpoint, rendering real-time telemetry on the Chart.js frontend.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="arch">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q6</span> What is a "Tuple" in iFogSim2, and how is it different from a network packet?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> A Tuple extends CloudSim's <span class="mono">Cloudlet</span>. Unlike a raw TCP/IP packet which only has byte size, a Tuple has both network size (in bytes) and computational processing length (in Million Instructions, MI). This allows iFogSim2 to accurately calculate both network link transmission delay and device CPU processing delay simultaneously.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="perf">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q7</span> How is energy consumption modeled for the Fog device and actuators?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> The Fog Device uses the <span class="mono">FogLinearPowerModel</span>: power scales linearly between its idle power (83.43W) and busy power (107.34W) depending on current CPU utilization. Actuators use discrete physical ratings: the Fan draws 80.0W when ON and 0W when OFF; the LED draws 10.0W when ON and 0W when OFF. Total Joules are computed by integrating power over simulated time elapsed.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="perf">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q8</span> Why are the MIPS values configured as 44,800, 2,800, and 80?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> These values reflect realistic relative computing power across hardware tiers. A cloud server has 44,800 MIPS (high-end multi-core Xeon datacenter node); a local Fog gateway like a Raspberry Pi 4 Quad-Core Cortex-A72 has roughly 2,800 MIPS; and an embedded NodeMCU ESP8266 microcontroller running at 80 MHz has ~80 MIPS.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="sim">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q9</span> How are synthetic anomalies modeled and handled?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> <span class="mono">SensorGenerator.java</span> injects anomalies with a configurable probability (default 2%). Anomalies model real-world hardware failures or environmental extremes: freezing drafts (5°C), fire hazards (50°C), covered light sensors (0 LDR), or short-circuit sensor errors (1023 LDR). The Decision Engine reacts immediately, tagging the row with <span class="mono">IsAnomaly=true</span> and actuating emergency fan cooling or lighting.</div>
+                                </div>
+
+                                <div class="viva-qa-item" data-cat="ml">
+                                    <div class="viva-qa-header">
+                                        <div class="viva-q"><span class="viva-q-badge">Q10</span> What future research extensions can be built on top of this codebase?</div>
+                                        <div class="viva-qa-tools">
+                                            <button type="button" class="btn-mini btn-copy-qa" title="Copy answer">Copy</button>
+                                            <svg class="viva-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="viva-a"><strong>Answer:</strong> Three immediate extensions: First, integrating dynamic Reinforcement Learning (Q-learning or PPO) in place of static IF/THEN rules so the home learns resident preferences. Second, federated learning, where the Fog node trains local models and sends only weight updates to the Cloud. Third, multi-home microgrid energy trading between multiple Fog gateways.</div>
+                                </div>
+                            </article>
+
+                            <!-- ARTICLE 6: LIVE DEMO CHECKLIST -->
+                            <article class="doc-article" id="viva-checklist">
+                                <h2 class="doc-h2">6. 4-Step Live Demo Checklist for Your Presentation</h2>
+                                <p>Follow these 4 steps in front of your professor to give an engaging, flawless live demonstration:</p>
+
+                                <div class="demo-step-box">
+                                    <div class="demo-step-num">1</div>
+                                    <div style="flex: 1;">
+                                        <div class="demo-step-title">Show the Overview Cockpit &amp; Latency Difference</div>
+                                        <div class="demo-step-text">Open Overview. Point out the <strong>5.67 ms Fog Latency</strong> metric compared to the <strong>41.0 ms Cloud WAN</strong> metric. Explain that this 86% latency reduction is the primary scientific finding of the simulation.</div>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 8px;" onclick="window.location.hash='#overview'">Open Overview Cockpit &rarr;</button>
+                                    </div>
+                                </div>
+
+                                <div class="demo-step-box">
+                                    <div class="demo-step-num">2</div>
+                                    <div style="flex: 1;">
+                                        <div class="demo-step-title">Demonstrate the Environmental Telemetry &amp; Fan State Graph</div>
+                                        <div class="demo-step-text">Scroll to the <strong>Real-Time Streams // Environmental Telemetry</strong> chart. Show how the green <strong>Fan State</strong> steps ON whenever the cyan <strong>Temperature</strong> exceeds 30.0°C and the house is occupied. Click the legend items to show interactive dataset filtering.</div>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 8px;" onclick="window.location.hash='#overview'">View Environmental Chart &rarr;</button>
+                                    </div>
+                                </div>
+
+                                <div class="demo-step-box">
+                                    <div class="demo-step-num">3</div>
+                                    <div style="flex: 1;">
+                                        <div class="demo-step-title">Run a Live Simulation with Synthetic Anomalies</div>
+                                        <div class="demo-step-text">Navigate to Simulation Workbench. Set the anomaly rate to <strong>5% Noise / High Stress</strong> and click <strong>Run Simulation</strong>. Watch the discrete-event progress bar advance through 10,001 tuples in ~1 second, with stdout logs appearing live in the terminal.</div>
+                                        <button type="button" class="btn btn-primary btn-sm" style="margin-top: 8px;" onclick="window.location.hash='#simulation'">Launch Simulation Workbench &rarr;</button>
+                                    </div>
+                                </div>
+
+                                <div class="demo-step-box">
+                                    <div class="demo-step-num">4</div>
+                                    <div style="flex: 1;">
+                                        <div class="demo-step-title">Inspect the Generated Dataset &amp; Benchmarks</div>
+                                        <div class="demo-step-text">Navigate to Dataset Explorer. Show the 10,000 generated records with the 14 attributes. Filter by <em>Anomalies Only</em> to highlight emergency events in red, proving that the decision engine correctly classified edge cases.</div>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 8px;" onclick="window.location.hash='#dataset'">Open Dataset Explorer &rarr;</button>
+                                    </div>
                                 </div>
                             </article>
 
